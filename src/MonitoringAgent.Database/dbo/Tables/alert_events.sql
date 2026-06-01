@@ -1,0 +1,27 @@
+﻿CREATE TABLE [dbo].[alert_events] (
+    [alert_event_id]        BIGINT         IDENTITY (1, 1) NOT NULL,
+    [alert_rule_id]         INT            NOT NULL,
+    [server_id]             INT            NOT NULL,
+    [server_service_id]     INT            NULL,
+    [status]                NVARCHAR (20)  NOT NULL,
+    [message]               NVARCHAR (500) NOT NULL,
+    [opened_utc]            DATETIME2 (7)  NOT NULL,
+    [closed_utc]            DATETIME2 (7)  NULL,
+    [acknowledged_utc]      DATETIME2 (7)  NULL,
+    [acknowledged_by]       NVARCHAR (100) NULL,
+    [suppressed_utc]        DATETIME2 (7)  NULL,
+    [suppressed_by]         NVARCHAR (100) NULL,
+    [suppressed_until_utc]  DATETIME2 (7)  NULL,
+    [closed_by]             NVARCHAR (100) NULL,
+    [last_seen_utc]         DATETIME2 (7)  NULL,
+    [occurrence_count]      INT            CONSTRAINT [DF_alert_events_occurrence_count] DEFAULT ((1)) NOT NULL,
+    [notification_count]    INT            CONSTRAINT [DF__alert_eve__notif__114A936A] DEFAULT ((0)) NOT NULL,
+    [last_notification_utc] DATETIME2 (7)  NULL,
+    [first_triggered_utc]   DATETIME2 (7)  NULL,
+    CONSTRAINT [PK__alert_ev__D8683A935E881355] PRIMARY KEY CLUSTERED ([alert_event_id] ASC),
+    CONSTRAINT [ck_alert_events_status] CHECK ([status]='Closed' OR [status]='Suppressed' OR [status]='Acknowledged' OR [status]='Open' OR [status]='Pending'),
+    CONSTRAINT [fk_alert_events_rule] FOREIGN KEY ([alert_rule_id]) REFERENCES [dbo].[alert_rules] ([alert_rule_id]),
+    CONSTRAINT [fk_alert_events_server] FOREIGN KEY ([server_id]) REFERENCES [dbo].[servers] ([server_id]),
+    CONSTRAINT [fk_alert_events_server_service] FOREIGN KEY ([server_service_id]) REFERENCES [dbo].[server_services] ([server_service_id])
+);
+
