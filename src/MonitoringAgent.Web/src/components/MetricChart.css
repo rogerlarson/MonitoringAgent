@@ -1,0 +1,12 @@
+.metric-chart {
+    background-color: #1b1b1b;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.metric-chart-title {
+    margin-top: 0;
+    margin-bottom: 12px;
+}

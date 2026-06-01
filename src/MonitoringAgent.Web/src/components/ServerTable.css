@@ -1,0 +1,22 @@
+.server-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #1b1b1b;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.server-table th {
+    text-align: left;
+    padding: 12px;
+    font-weight: 600;
+}
+
+.server-table td {
+    padding: 12px;
+}
+
+.server-table tbody tr:hover {
+    background-color: #1e293b;
+    cursor: pointer;
+}

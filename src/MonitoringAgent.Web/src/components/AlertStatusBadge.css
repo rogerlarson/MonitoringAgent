@@ -1,0 +1,22 @@
+.alert-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.alert-status-badge.open {
+    background: #7f1d1d;
+    color: #fecaca;
+}
+
+.alert-status-badge.closed {
+    background: #14532d;
+    color: #bbf7d0;
+}
+
+.alert-status-badge.acknowledged {
+    background: #78350f;
+    color: #fde68a;
+}

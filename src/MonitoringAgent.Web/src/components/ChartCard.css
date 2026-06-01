@@ -1,0 +1,12 @@
+.chart-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.chart-card-title {
+    margin-top: 0;
+    margin-bottom: 12px;
+}

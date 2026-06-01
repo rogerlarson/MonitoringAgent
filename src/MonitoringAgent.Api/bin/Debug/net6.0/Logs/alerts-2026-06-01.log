@@ -1,0 +1,56 @@
+2026-06-01 00:49:23Z CLOSED AlertId=18 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 00:49:27Z CLOSED AlertId=17 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:21:32Z OPENED AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:21:36Z OPENED AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:26:32Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:26:36Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:31:32Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:31:36Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:40:12Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:40:16Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:45:12Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:45:17Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:52:43Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:52:47Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 01:57:43Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 01:57:47Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:02:43Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:02:47Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:07:44Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:07:48Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:12:45Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:12:49Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:17:45Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:17:49Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:22:45Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:22:49Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:27:45Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:27:49Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:32:46Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:32:50Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:37:46Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:37:50Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:42:46Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:42:50Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:47:46Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:47:50Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:52:47Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:52:51Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 02:57:47Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 02:57:51Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:02:47Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:02:51Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:07:47Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:07:51Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:12:48Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:12:52Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:17:48Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:17:52Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:22:49Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:22:53Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:27:50Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:27:54Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:32:50Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:32:54Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable
+2026-06-01 03:37:50Z REMINDER AlertId=19 Rule=Ignition Down Message=Ignition process is not running
+2026-06-01 03:37:54Z REMINDER AlertId=20 Rule=Gateway Down Message=Gateway is unreachable

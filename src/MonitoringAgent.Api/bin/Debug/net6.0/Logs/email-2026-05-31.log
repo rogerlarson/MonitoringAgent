@@ -1,0 +1,140 @@
+2026-05-31 03:08:00Z REMINDER 5 Ignition process is not running
+2026-05-31 03:08:00Z EMAIL FAILED: System.ArgumentException: The parameter 'from' cannot be an empty string. (Parameter 'from')
+   at System.Net.Mail.MailMessage..ctor(String from, String to)
+   at System.Net.Mail.MailMessage..ctor(String from, String to, String subject, String body)
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 102
+2026-05-31 03:08:00Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:08:00Z EMAIL FAILED: System.ArgumentException: The parameter 'from' cannot be an empty string. (Parameter 'from')
+   at System.Net.Mail.MailMessage..ctor(String from, String to)
+   at System.Net.Mail.MailMessage..ctor(String from, String to, String subject, String body)
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 102
+2026-05-31 03:08:04Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:08:04Z EMAIL FAILED: System.ArgumentException: The parameter 'from' cannot be an empty string. (Parameter 'from')
+   at System.Net.Mail.MailMessage..ctor(String from, String to)
+   at System.Net.Mail.MailMessage..ctor(String from, String to, String subject, String body)
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 102
+2026-05-31 03:10:48Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:10:48Z Connecting to smtp.office365.com:587
+2026-05-31 03:10:59Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.3 Authentication unsuccessful [BN0PR02CA0009.namprd02.prod.outlook.com 2026-05-31T03:11:01.008Z 08DEBE9C8D867CDA]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:12:10Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:12:10Z Connecting to smtp.office365.com:587
+2026-05-31 03:12:20Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.3 Authentication unsuccessful [SA1P222CA0192.NAMP222.PROD.OUTLOOK.COM 2026-05-31T03:12:22.219Z 08DEBE5AE2F7A467]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:12:33Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:12:33Z Connecting to smtp.office365.com:587
+2026-05-31 03:12:44Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.139 Authentication unsuccessful, basic authentication is disabled. [BN9PR03CA0418.namprd03.prod.outlook.com 2026-05-31T03:12:46.103Z 08DEBEA0DE1C5CC7]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:13:01Z REMINDER 5 Ignition process is not running
+2026-05-31 03:13:01Z Connecting to smtp.office365.com:587
+2026-05-31 03:13:11Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.139 Authentication unsuccessful, basic authentication is disabled. [SA1PR03CA0019.namprd03.prod.outlook.com 2026-05-31T03:13:13.465Z 08DEBE2CC7F1EF66]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:13:11Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:13:11Z Connecting to smtp.office365.com:587
+2026-05-31 03:13:22Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.139 Authentication unsuccessful, basic authentication is disabled. [SA0PR11CA0028.namprd11.prod.outlook.com 2026-05-31T03:13:24.008Z 08DEBE738446B54B]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:18:06Z REMINDER 5 Ignition process is not running
+2026-05-31 03:18:06Z Connecting to smtp.office365.com:587
+2026-05-31 03:18:17Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.139 Authentication unsuccessful, basic authentication is disabled. [LV3P220CA0008.NAMP220.PROD.OUTLOOK.COM 2026-05-31T03:18:19.401Z 08DEBDFF3A8557CE]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:18:17Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:18:17Z Connecting to smtp.office365.com:587
+2026-05-31 03:18:28Z EMAIL FAILED: System.Net.Mail.SmtpException: The SMTP server requires a secure connection or the client was not authenticated. The server response was: 5.7.57 Client not authenticated to send mail. Error: 535 5.7.139 Authentication unsuccessful, basic authentication is disabled. [BN9P220CA0027.NAMP220.PROD.OUTLOOK.COM 2026-05-31T03:18:30.268Z 08DEBDCD46C9DA12]
+   at System.Net.Mail.MailCommand.CheckResponse(SmtpStatusCode statusCode, String response)
+   at System.Net.Mail.MailCommand.EndSend(IAsyncResult result)
+   at System.Net.Mail.SendMailAsyncResult.SendMailFromCompleted(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SendMailAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.SendMailCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:19:08Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:19:08Z Connecting to localhost:25
+2026-05-31 03:19:08Z EMAIL FAILED: System.Net.Mail.SmtpException: Server does not support secure connections.
+   at System.Net.Mail.SmtpConnection.ConnectAndHandshakeAsyncResult.SendEHelloCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at System.Net.Mail.SmtpConnection.ConnectAndHandshakeAsyncResult.End(IAsyncResult result)
+   at System.Net.Mail.SmtpClient.ConnectCallback(IAsyncResult result)
+--- End of stack trace from previous location ---
+   at MonitoringAgent.Api.Services.EmailService.SendEmail(String subject, String body) in C:\Users\roger\source\repos\MonitoringAgent\src\MonitoringAgent.Api\Services\EmailService.cs:line 125
+2026-05-31 03:22:33Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:22:33Z Connecting to localhost:25
+2026-05-31 03:22:33Z EMAIL SENT: ALERT OPENED: SMTP Test Alert
+2026-05-31 03:23:10Z REMINDER 5 Ignition process is not running
+2026-05-31 03:23:10Z Connecting to localhost:25
+2026-05-31 03:23:10Z EMAIL SENT: ALERT REMINDER: Ignition process is not running
+2026-05-31 03:23:20Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:23:20Z Connecting to localhost:25
+2026-05-31 03:23:20Z EMAIL SENT: ALERT REMINDER: Gateway is unreachable
+2026-05-31 03:26:19Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:26:19Z Connecting to localhost:25
+2026-05-31 03:26:19Z EMAIL SENT: ALERT OPENED: SMTP Test Alert
+2026-05-31 03:26:25Z OPENED 999999 SMTP Test Alert
+2026-05-31 03:26:25Z Connecting to localhost:25
+2026-05-31 03:26:25Z EMAIL SENT: ALERT OPENED: SMTP Test Alert
+2026-05-31 03:28:13Z REMINDER 5 Ignition process is not running
+2026-05-31 03:28:13Z Connecting to localhost:25
+2026-05-31 03:28:13Z EMAIL SENT: ALERT REMINDER: Ignition process is not running
+2026-05-31 03:28:22Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:28:22Z Connecting to localhost:25
+2026-05-31 03:28:23Z EMAIL SENT: ALERT REMINDER: Gateway is unreachable
+2026-05-31 03:33:16Z REMINDER 5 Ignition process is not running
+2026-05-31 03:33:16Z Connecting to localhost:25
+2026-05-31 03:33:16Z EMAIL SENT: ALERT REMINDER: Ignition process is not running
+2026-05-31 03:33:25Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:33:25Z Connecting to localhost:25
+2026-05-31 03:33:25Z EMAIL SENT: ALERT REMINDER: Gateway is unreachable
+2026-05-31 03:38:19Z REMINDER 5 Ignition process is not running
+2026-05-31 03:38:19Z Connecting to localhost:25
+2026-05-31 03:38:19Z EMAIL SENT: ALERT REMINDER: Ignition process is not running
+2026-05-31 03:38:28Z REMINDER 6 Gateway is unreachable
+2026-05-31 03:38:28Z Connecting to localhost:25
+2026-05-31 03:38:28Z EMAIL SENT: ALERT REMINDER: Gateway is unreachable
+2026-05-31 03:48:12Z CLOSED 5 Ignition process is not running
+2026-05-31 03:48:12Z Connecting to localhost:25
+2026-05-31 03:48:12Z EMAIL SENT: ALERT CLOSED: Ignition process is not running
+2026-05-31 03:48:12Z CLOSED 6 Gateway is unreachable
+2026-05-31 03:48:12Z Connecting to localhost:25
+2026-05-31 03:48:12Z EMAIL SENT: ALERT CLOSED: Gateway is unreachable
