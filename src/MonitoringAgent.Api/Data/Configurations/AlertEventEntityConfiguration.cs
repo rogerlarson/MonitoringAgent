@@ -83,6 +83,18 @@ public sealed class AlertEventEntityConfiguration
             .HasColumnName(
                 "notification_count");
 
+        builder.Property(x =>
+            x.SuppressedBy)
+            .HasColumnName("suppressed_by");
+        
+        builder.Property(x =>
+            x.SuppressedUtc)
+            .HasColumnName("suppressed_utc");
+
+        builder.Property(x =>
+            x.ClosedBy)
+            .HasColumnName("closed_by");
+
         builder.HasOne(x =>
             x.AlertRule)
             .WithMany()

@@ -20,3 +20,20 @@
     background: #78350f;
     color: #fde68a;
 }
+
+.alert-status-badge.suppressed {
+    background: #1e3a8a;
+    color: #bfdbfe;
+}
+
+.open-alert-card.open {
+    border-color: #dc2626;
+}
+
+.open-alert-card.acknowledged {
+    border-color: #f59e0b;
+}
+
+.open-alert-card.suppressed {
+    border-color: #3b82f6;
+}

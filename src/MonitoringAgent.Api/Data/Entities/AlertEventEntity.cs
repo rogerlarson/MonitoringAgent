@@ -63,4 +63,13 @@ public sealed class AlertEventEntity
 
     public int NotificationCount
     { get; set; }
+
+    public string? SuppressedBy
+    { get; set; }
+
+    public DateTime? SuppressedUtc
+    { get; set; }
+
+    public string? ClosedBy
+    { get; set; }
 }

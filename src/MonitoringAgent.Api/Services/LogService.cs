@@ -98,19 +98,27 @@ public sealed class LogService
     }
 
     private async Task Write(
-        string prefix,
-        string message)
+    string prefix,
+    string message)
     {
-        var fileName =
-            $"{prefix}-{DateTime.UtcNow:yyyy-MM-dd}.log";
+        try
+        {
+            var fileName =
+                $"{prefix}-{DateTime.UtcNow:yyyy-MM-dd}.log";
 
-        var path =
-            Path.Combine(
-                _logDirectory,
-                fileName);
+            var path =
+                Path.Combine(
+                    _logDirectory,
+                    fileName);
 
-        await File.AppendAllTextAsync(
-            path,
-            $"{DateTime.UtcNow:u} {message}{Environment.NewLine}");
+            await File.AppendAllTextAsync(
+                path,
+                $"{DateTime.UtcNow:u} {message}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Never allow logging failures
+            // to crash the application.
+        }
     }
 }

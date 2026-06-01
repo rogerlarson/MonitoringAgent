@@ -92,3 +92,36 @@ export async function getAlerts(
 
     return response.data;
 }
+
+export async function acknowledgeAlert(
+    alertId: number)
+{
+    await api.post(
+        `/alerts/${alertId}/acknowledge`,
+        {});
+}
+
+export async function unacknowledgeAlert(
+    alertId: number)
+{
+    await api.post(
+        `/alerts/${alertId}/unacknowledge`);
+}
+
+export async function suppressAlert(
+    alertId: number,
+    hours: number = 4)
+{
+    await api.post(
+        `/alerts/${alertId}/suppress`,
+        {
+            hours
+        });
+}
+
+export async function unsuppressAlert(
+    alertId: number)
+{
+    await api.post(
+        `/alerts/${alertId}/unsuppress`);
+}

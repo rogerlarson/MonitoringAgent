@@ -101,10 +101,41 @@ public sealed class AlertsController
         alert.AcknowledgedUtc =
             DateTime.UtcNow;
 
+        // TODO: Since no user authentication right now, use System Environment Name instead... - Roger
         alert.AcknowledgedBy =
-            request.UserName;
+            string.IsNullOrWhiteSpace(
+                Environment.UserName)
+                    ? "System"
+                    : Environment.UserName;
 
         await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("{alertId}/unacknowledge")]
+    public async Task<IActionResult> Unacknowledge(
+    int alertId)
+    {
+        var alert =
+            await _db.AlertEvents
+                .FirstOrDefaultAsync(
+                    x => x.AlertEventId == alertId);
+
+        if (alert == null)
+            return NotFound();
+
+        if (alert.Status == AlertStatus.Acknowledged)
+        {
+            // Re-open the alert...
+            alert.Status = AlertStatus.Open;
+
+            // Clear the old acknowledgement...
+            alert.AcknowledgedUtc = null;
+            alert.AcknowledgedBy = null;
+
+            await _db.SaveChangesAsync();
+        }
 
         return Ok();
     }
@@ -130,18 +161,61 @@ public sealed class AlertsController
         alert.Status =
             AlertStatus.Suppressed;
 
+        alert.SuppressedBy =
+            string.IsNullOrWhiteSpace(
+                request.UserName)
+                    ? Environment.UserName
+                    : request.UserName;
+
         alert.SuppressedUntilUtc =
             DateTime.UtcNow.AddHours(
                 request.Hours);
+
+        alert.SuppressedUtc =
+            DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
 
         return Ok();
     }
 
+    [HttpPost("{alertId:long}/unsuppress")]
+    public async Task<IActionResult> Unsuppress(
+    int alertId)
+    {
+        var alert =
+            await _db.AlertEvents
+                .FirstOrDefaultAsync(
+                    x => x.AlertEventId == alertId);
+
+        if (alert == null)
+            return NotFound();
+
+        if (alert.Status == AlertStatus.Suppressed)
+        {
+            // Re-open the alert
+            alert.Status = AlertStatus.Open;
+            
+            // Clear suppressed until datetime UTC
+            alert.SuppressedUntilUtc = null;
+
+            // Clear who suppressed it
+            alert.SuppressedBy = null;
+
+            // Clear the original suppressed timestamp UTC
+            alert.SuppressedUtc = null;
+
+            await _db.SaveChangesAsync();
+        }
+
+        return Ok();
+    }
+
     [HttpPost("{alertId:long}/close")]
     public async Task<IActionResult> Close(
-        long alertId)
+        long alertId,
+        [FromBody]
+        CloseAlertRequest request)
     {
         var alert =
             await _db.AlertEvents
@@ -160,6 +234,12 @@ public sealed class AlertsController
 
         alert.ClosedUtc =
             DateTime.UtcNow;
+
+        alert.ClosedBy =
+            string.IsNullOrWhiteSpace(
+                request.UserName)
+                    ? Environment.UserName
+                    : request.UserName;
 
         await _db.SaveChangesAsync();
 
@@ -213,8 +293,14 @@ public sealed class AlertsController
             AcknowledgedBy =
                 alert.AcknowledgedBy,
 
+            SuppressedBy =
+                alert.SuppressedBy,
+
             SuppressedUntilUtc =
                 alert.SuppressedUntilUtc,
+
+            ClosedBy =
+                alert.ClosedBy,
 
             NotificationCount =
                 alert.NotificationCount

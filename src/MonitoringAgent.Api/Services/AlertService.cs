@@ -187,6 +187,31 @@ public sealed class AlertService
                         x.Status !=
                             AlertStatus.Closed);
 
+        // Deal with unsuppressing after expiration of suppressed alert
+        if (
+            openAlert?.Status ==
+                AlertStatus.Suppressed
+            &&
+            openAlert.SuppressedUntilUtc != null
+            &&
+            openAlert.SuppressedUntilUtc <=
+                DateTime.UtcNow)
+        {
+            openAlert.Status =
+                AlertStatus.Open;
+
+            openAlert.SuppressedUntilUtc =
+                null;
+
+            openAlert.SuppressedBy =
+                null;
+
+            openAlert.SuppressedUtc =
+                null;
+
+            await _db.SaveChangesAsync();
+        }
+
         if (triggered)
         {
             if (
@@ -283,6 +308,12 @@ public sealed class AlertService
 
                     openAlert.NotificationCount++;
 
+                    openAlert.SuppressedUntilUtc =
+                        null;
+
+                    openAlert.SuppressedBy =
+                        null;
+
                     await _logService.LogAlert(
                         $"REMINDER AlertId={openAlert.AlertEventId} Rule={rule.RuleName} Message={openAlert.Message}");
 
@@ -314,8 +345,7 @@ public sealed class AlertService
 
                 openAlert.NotificationCount++;
 
-                await _logService.LogAlert(
-                    $"CLOSED AlertId={openAlert.AlertEventId} Rule={rule.RuleName} Message={openAlert.Message}");
+                openAlert.ClosedBy = "System";
 
                 await _emailService
                     .SendAlertClosed(

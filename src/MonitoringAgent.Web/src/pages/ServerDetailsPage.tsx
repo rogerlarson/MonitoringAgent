@@ -22,7 +22,11 @@ import {
     getAlerts,
     getHostHistory,
     getGatewayHistory,
-    getIgnitionHistory
+    getIgnitionHistory,
+    unsuppressAlert,
+    suppressAlert,
+    unacknowledgeAlert,
+    acknowledgeAlert
 }
 from "../api/serverApi";
 
@@ -286,7 +290,7 @@ const chartData =
 
     const openAlerts =
         recentAlerts.filter(
-            alert => alert.status === "Open");
+            alert => alert.status !== "Closed");
 
     const cpuDelta =
         history.length >= 2
@@ -305,6 +309,47 @@ const chartData =
             ? history.at(-1)!.diskPercentUsed -
             history.at(-2)!.diskPercentUsed
             : 0;
+
+    const recentEvents = useMemo(() =>
+    {
+        const events = [];
+
+        for (const alert of recentAlerts)
+        {
+            events.push({
+                id: `${alert.alertEventId}-open`,
+                type: "down",
+                timestamp:
+                    alert.firstTriggeredUtc ??
+                    alert.openedUtc,
+                text:
+                    alert.ruleName
+            });
+
+            if (alert.closedUtc)
+            {
+                events.push({
+                    id: `${alert.alertEventId}-close`,
+                    type: "up",
+                    timestamp:
+                        alert.closedUtc,
+                    text:
+                        alert.ruleName.includes("Down")
+                            ? alert.ruleName.replace(
+                                "Down",
+                                "Restored")
+                            : `${alert.ruleName} Recovered`
+                });
+            }
+        }
+
+        return events
+            .sort(
+                (a, b) =>
+                    new Date(b.timestamp).getTime() -
+                    new Date(a.timestamp).getTime())
+            .slice(0, 20);
+    }, [recentAlerts]);
 
     if (!server)
     {
@@ -664,87 +709,147 @@ const chartData =
                 </tbody>
             </table>
            <h2>Open Alerts</h2>
+            <div className="open-alerts">
             {
-                openAlerts.length === 0
-                    ? (
-                        <div className="open-alerts-empty">
-                            ✓ No open alerts
-                        </div>
-                    )
-                    : (
-                        <div className="open-alerts">
-                            {
-                                openAlerts.map(alert => (
-                                    <div
-                                        key={alert.alertEventId}
-                                        className="open-alert-card"
-                                        title={alert.message}
-                                    >
-                                        <AlertStatusBadge
-                                            status={alert.status}
-                                        />
-
-                                        <div>
-                                            <strong>
-                                                {alert.ruleName}
-                                            </strong>
-
-                                            <div>
-                                                {`Open for 
-                                                    ${formatDuration(
-                                                        alert.firstTriggeredUtc ??
-                                                        alert.openedUtc,
-                                                        alert.closedUtc
-                                                )}`}
-                                            </div>
-                                            <div className="open-alert-occurrences">
-                                                {alert.occurrenceCount} occurrences
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            }
-                        </div>
-                    )
-            }
-            <h2>Recent Events</h2>
-            <div className="event-feed">
+                openAlerts.map(alert =>
                 {
-                    recentAlerts
-                        .slice(0, 20)
-                        .map(alert => (
-                            <div
-                                key={alert.alertEventId}
-                                className="event-item"
-                            >
-                                <span
-                                    className={
-                                        alert.status === "Open"
-                                            ? "event-icon down"
-                                            : "event-icon up"
-                                    }
-                                >
-                                    {
-                                        alert.status === "Open"
-                                            ? "🟥"
-                                            : "🟩"
-                                    }
-                                </span>
+                    const cardClass =
+                        alert.status === "Acknowledged"
+                            ? "open-alert-card acknowledged"
+                            : alert.status === "Suppressed"
+                                ? "open-alert-card suppressed"
+                                : "open-alert-card open";
 
-                                <span className="event-time">
-                                    {
-                                        formatTimestamp(
-                                            alert.firstTriggeredUtc ??
-                                            alert.openedUtc)
-                                    }
-                                </span>
+                    return (
+                        <div
+                            key={alert.alertEventId}
+                            className={cardClass}
+                            title={alert.message}
+                        >
+                            <AlertStatusBadge
+                                status={alert.status}
+                            />
 
-                                <span className="event-message">
+                            <div>
+                                <strong>
                                     {alert.ruleName}
-                                </span>
+                                </strong>
+
+                                <div>
+                                    Open for{" "}
+                                    {formatDuration(
+                                        alert.firstTriggeredUtc ??
+                                        alert.openedUtc,
+                                        alert.closedUtc
+                                    )}
+                                </div>
+
+                                <div className="open-alert-occurrences">
+                                    {alert.occurrenceCount} occurrences
+                                </div>
                             </div>
-                        ))
-                }
+                            <div className="open-alert-actions">
+
+                                {
+                                    alert.status === "Open" &&
+                                    (
+                                        <>
+                                            <button
+                                                onClick={() =>
+                                                    handleAcknowledge(
+                                                        alert.alertEventId)}
+                                            >
+                                                Acknowledge
+                                            </button>
+
+                                            <button
+                                                onClick={() =>
+                                                    handleSuppress(
+                                                        alert.alertEventId)}
+                                            >
+                                                Suppress
+                                            </button>
+                                        </>
+                                    )
+                                }
+
+                                {
+                                    alert.status === "Acknowledged" &&
+                                    (
+                                        <>
+                                            <button
+                                                onClick={() =>
+                                                    handleUnacknowledge(
+                                                        alert.alertEventId)}
+                                            >
+                                                Unacknowledge
+                                            </button>
+
+                                            <button
+                                                onClick={() =>
+                                                    handleSuppress(
+                                                        alert.alertEventId)}
+                                            >
+                                                Suppress
+                                            </button>
+                                        </>
+                                    )
+                                }
+
+                                {
+                                    alert.status === "Suppressed" &&
+                                    (
+                                        <>
+                                            <button
+                                                onClick={() =>
+                                                    handleUnsuppress(
+                                                        alert.alertEventId)}
+                                            >
+                                                Unsuppress
+                                            </button>
+                                        </>
+                                    )
+                                }
+
+                            </div>
+                        </div>
+                    );
+                })
+            }
+            </div>
+            <h2>Recent Events</h2>
+
+            <div className="event-feed">
+            {
+                recentEvents.map(event => (
+                    <div
+                        key={event.id}
+                        className="event-item"
+                    >
+                        <span
+                            className={
+                                event.type === "down"
+                                    ? "event-icon down"
+                                    : "event-icon up"
+                            }
+                        >
+                            {
+                                event.type === "down"
+                                    ? "🟥"
+                                    : "🟩"
+                            }
+                        </span>
+
+                        <span className="event-time">
+                            {formatEventTimestamp(event.timestamp)}
+                        </span>
+
+                        <span className="event-message">
+                            {event.text}
+                        </span>
+                    </div>
+                ))
+            }
             </div>
             <h2>Recent Alerts</h2>
             {
@@ -760,7 +865,7 @@ const chartData =
                             <thead>
                                 <tr>
                                     <th className="status-column">Status</th>
-                                    <th>Rule</th>
+                                    <th className="rule-column">Rule</th>
                                     <th className="occurrences-column">Occurrences</th>
                                     <th className="date-column">Triggered</th>
                                     <th className="date-column">Opened</th>
@@ -1110,5 +1215,46 @@ const chartData =
             Math.floor(minutes / 60);
 
         return `${hours}h`;
+    }
+
+    function formatEventTimestamp(
+        timestamp: string)
+    {
+        return new Date(timestamp)
+            .toLocaleString();
+    }
+    
+    async function handleAcknowledge(
+        alertId: number)
+    {
+        await acknowledgeAlert(
+            alertId);
+
+        await loadData();
+    }
+    async function handleUnacknowledge(
+        alertId: number)
+    {
+        await unacknowledgeAlert(
+            alertId);
+
+        await loadData();
+    }
+    async function handleSuppress(
+        alertId: number)
+    {
+        await suppressAlert(
+            alertId,
+            0.01);
+
+        await loadData();
+    }
+    async function handleUnsuppress(
+        alertId: number)
+    {
+        await unsuppressAlert(
+            alertId);
+
+        await loadData();
     }
 }
