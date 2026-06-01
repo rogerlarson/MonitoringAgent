@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\MonitoringAgent.Api.props" />
-</Project>

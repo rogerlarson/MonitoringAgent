@@ -1,32 +1,28 @@
 # Visual Studio
 .vs/
-*.user
 *.suo
+*.user
 
-# .NET
-bin/
-obj/
+# Build Output
+**/bin/
+**/obj/
 
 # Node
-node_modules/
-dist/
+**/node_modules/
+**/dist/
 
 # Logs
-Logs/
+**/Logs/
 *.log
 
-# Publish
+# Publish Output
 publish/
-
-# Rider
-.idea/
 
 # VS Code
 .vscode/
 
-# OS
-Thumbs.db
-.DS_Store
+# Rider
+.idea/
 
 # Secrets
 appsettings.Development.json

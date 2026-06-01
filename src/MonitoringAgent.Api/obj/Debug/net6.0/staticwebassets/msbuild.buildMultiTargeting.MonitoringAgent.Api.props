@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\MonitoringAgent.Api.props" />
-</Project>
