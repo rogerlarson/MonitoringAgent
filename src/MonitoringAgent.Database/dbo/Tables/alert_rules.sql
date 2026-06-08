@@ -8,6 +8,7 @@
     [sustain_seconds]  INT             CONSTRAINT [DF__alert_rul__susta__02084FDA] DEFAULT ((0)) NOT NULL,
     [repeat_seconds]   INT             CONSTRAINT [DF__alert_rul__repea__02FC7413] DEFAULT ((3600)) NOT NULL,
     [auto_close]       BIT             CONSTRAINT [DF__alert_rul__auto___03F0984C] DEFAULT ((1)) NOT NULL,
+    [email_enabled]    BIT             CONSTRAINT [DF_alert_rules_send_email] DEFAULT ((0)) NOT NULL,
     [is_enabled]       BIT             CONSTRAINT [DF__alert_rul__is_en__7B5B524B] DEFAULT ((1)) NOT NULL,
     [created_date_utc] DATETIME2 (7)   CONSTRAINT [DF__alert_rul__creat__7C4F7684] DEFAULT (sysutcdatetime()) NOT NULL,
     CONSTRAINT [PK__alert_ru__27F94DF302E28D24] PRIMARY KEY CLUSTERED ([alert_rule_id] ASC),
