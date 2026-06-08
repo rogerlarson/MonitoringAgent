@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
-using MonitoringAgent.Api.Data;
+using MonitoringAgent.Data;
 using Microsoft.EntityFrameworkCore;
-using MonitoringAgent.Api.Services;
-using MonitoringAgent.Api.Services.Interfaces;
+using MonitoringAgent.Common.Services;
+using MonitoringAgent.Common.Configuration;
 using MonitoringAgent.Api.Configuration;
 using MonitoringAgent.Api.Middleware;
+using MonitoringAgent.Data.Repositories;
+using MonitoringAgent.Common.Interfaces;
 
 // Get the Web Application builder object...
 var builder = WebApplication.CreateBuilder(args);
@@ -35,45 +37,28 @@ builder.Services.AddSwaggerGen();
 // Add Logger Service...
 builder.Services.AddSingleton<ILogService, LogService>();
 
-// Add Logger Cleanup Service...
-builder.Services.AddHostedService<LogCleanupService>();
-
-// Add Alert Service...
-builder.Services.AddScoped<AlertService>();
-
-// Add Email Service...
-builder.Services.AddScoped<IEmailService, EmailService>();
-
-// Add Host Heartbeat Service...
-builder.Services.AddHostedService<HostOfflineMonitorService>();
-
-// Add Snapshot Retention/Cleanup Service...
-builder.Services.AddHostedService<SnapshotCleanupService>();
+// Add Monitoring Repository
+builder.Services.AddScoped<IMonitoringRepository, MonitoringRepository>();
 
 // Configure Log Settings...
 builder.Services.Configure<LogSettings>(
     builder.Configuration.GetSection(
         "Logging"));
 
-// Configure Email Settings...
-builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection(
-        "Email"));
+// Add Email Service...
+builder.Services.AddScoped<
+    IEmailService,
+    EmailService>();
 
-// Configure Monitoring Settings...
-var monitoringSettings =
+// Configure API Settings...
+var apiSettings =
     builder.Configuration
-        .GetSection("Monitoring")
-        .Get<MonitoringSettings>()
-    ?? new MonitoringSettings();
+        .GetSection("Api")
+        .Get<ApiSettings>()
+    ?? new ApiSettings();
 
 builder.Services.AddSingleton(
-    monitoringSettings);
-
-// Configure Database Snapshot Retention Settings...
-builder.Services.Configure<RetentionSettings>(
-    builder.Configuration.GetSection(
-        "Retention"));
+    apiSettings);
 
 // Add Monitoring Database Context Service...
 builder.Services.AddDbContext<MonitoringDbContext>(
@@ -93,7 +78,7 @@ var logger =
 
 logger.LogInformation(
     "API key authentication {State}",
-    monitoringSettings.RequireApiKey
+    apiSettings.RequireApiKey
         ? "ENABLED"
         : "DISABLED");
 

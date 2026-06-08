@@ -1,33 +1,74 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// ============================================================================
+// Project: MonitoringAgent.Api
+// File: ServersController.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Provides server monitoring operations including current status,
+//      historical metrics, service health, alert history, and server
+//      summary information.
+//
+//      Exposes API endpoints used by the monitoring dashboard to display
+//      server health, performance metrics, and alert activity.
+// ============================================================================
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MonitoringAgent.Api.Data;
-using MonitoringAgent.Api.Services;
 using MonitoringAgent.Api.Models.Responses;
+using MonitoringAgent.Common.Enums;
+using MonitoringAgent.Data;
 
 namespace MonitoringAgent.Api.Controllers;
 
+/// <summary>
+/// Provides server monitoring operations.
+/// </summary>
 [ApiController]
 [Route("api/servers")]
 public sealed class ServersController
     : ControllerBase
 {
+    // =====================================================================
+    // Dependencies
+    // =====================================================================
+
     private readonly MonitoringDbContext _db;
 
+    // =====================================================================
+    // Constructor
+    // =====================================================================
+
+    /// <summary>
+    /// Initializes a new instance of the controller.
+    /// </summary>
+    /// <param name="db">
+    /// Database context.
+    /// </param>
     public ServersController(
         MonitoringDbContext db)
     {
-        _db = db;
+        _db =
+            db;
     }
 
+    // =====================================================================
+    // Server Queries
+    // =====================================================================
+
     /// <summary>
-    /// Returns all servers.
+    /// Retrieves all monitored servers and their latest status.
     /// </summary>
+    /// <returns>
+    /// Collection of monitored servers.
+    /// </returns>
     [HttpGet]
     public async Task<IActionResult> GetServers()
     {
         var servers =
             await _db.Servers
-                .OrderBy(x => x.ServerName)
+                .OrderBy(x =>
+                    x.ServerName)
                 .ToListAsync();
 
         var result =
@@ -62,11 +103,6 @@ public sealed class ServersController
                         x.SnapshotUtc)
                     .FirstOrDefaultAsync();
 
-            var status =
-                ServerStatusCalculator.Calculate(
-                    server.LastSeenUtc,
-                    latestSnapshot);
-
             result.Add(
                 new ServerResponse
                 {
@@ -80,7 +116,7 @@ public sealed class ServersController
                         server.LastSeenUtc,
 
                     Status =
-                        status,
+                        server.Status.ToString(),
 
                     CpuPercent =
                         latestSnapshot?.CpuPercent,
@@ -96,12 +132,19 @@ public sealed class ServersController
                 });
         }
 
-        return Ok(result);
+        return Ok(
+            result);
     }
 
     /// <summary>
-    /// Returns a single server.
+    /// Retrieves detailed information for a specific server.
     /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <returns>
+    /// Detailed server information.
+    /// </returns>
     [HttpGet("{serverId:int}")]
     public async Task<IActionResult> GetServer(
         int serverId)
@@ -152,48 +195,43 @@ public sealed class ServersController
                     serverId &&
                     x.Enabled);
 
-        var status =
-            ServerStatusCalculator.Calculate(
-                server.LastSeenUtc,
-                latestSnapshot);
-
         return Ok(
-             new ServerDetailsResponse
-             {
-                 ServerId =
-                     server.ServerId,
+            new ServerDetailsResponse
+            {
+                ServerId =
+                    server.ServerId,
 
-                 ServerName =
-                     server.ServerName,
+                ServerName =
+                    server.ServerName,
 
-                 LastSeenUtc =
-                     server.LastSeenUtc,
+                LastSeenUtc =
+                    server.LastSeenUtc,
 
-                 Status =
-                     status,
+                Status =
+                    server.Status.ToString(),
 
-                 ServiceCount =
-                     serviceCount,
+                ServiceCount =
+                    serviceCount,
 
-                 DomainName =
-                     server.DomainName,
+                DomainName =
+                    server.DomainName,
 
-                 AgentVersion =
-                     server.AgentVersion,
+                AgentVersion =
+                    server.AgentVersion,
 
-                 OperatingSystem =
-                     server.OperatingSystem,
+                OperatingSystem =
+                    server.OperatingSystem,
 
-                 OperatingSystemVersion =
-                     server.OperatingSystemVersion,
+                OperatingSystemVersion =
+                    server.OperatingSystemVersion,
 
-                 ProcessorCount =
-                     server.ProcessorCount,
+                ProcessorCount =
+                    server.ProcessorCount,
 
-                 TotalMemoryMb =
-                     server.TotalMemoryMb,
+                TotalMemoryMb =
+                    server.TotalMemoryMb,
 
-                 Host =
+                Host =
                     latestSnapshot == null
                         ? new HostMetricsResponse()
                         : new HostMetricsResponse
@@ -214,60 +252,71 @@ public sealed class ServersController
                                 latestSnapshot.SystemUptimeMinutes
                         },
 
-                 Gateway =
-                     latestGateway == null
-                         ? null
-                         : new GatewayMetricsResponse
-                         {
-                             Reachable =
-                                 latestGateway.Reachable,
+                Gateway =
+                    latestGateway == null
+                        ? null
+                        : new GatewayMetricsResponse
+                        {
+                            Reachable =
+                                latestGateway.Reachable,
 
-                             HttpStatusCode =
-                                 latestGateway.HttpStatusCode,
+                            HttpStatusCode =
+                                latestGateway.HttpStatusCode,
 
-                             ResponseMs =
-                                 latestGateway.ResponseMs
-                         },
+                            ResponseMs =
+                                latestGateway.ResponseMs
+                        },
 
-                 Ignition =
-                     latestIgnition == null
-                         ? null
-                         : new IgnitionMetricsResponse
-                         {
-                             ProcessRunning =
-                                 latestIgnition.ProcessRunning,
+                Ignition =
+                    latestIgnition == null
+                        ? null
+                        : new IgnitionMetricsResponse
+                        {
+                            ProcessRunning =
+                                latestIgnition.ProcessRunning,
 
-                             ServiceRunning =
-                                 latestIgnition.ServiceRunning,
+                            ServiceRunning =
+                                latestIgnition.ServiceRunning,
 
-                             IgnitionVersion =
-                                 latestIgnition.IgnitionVersion,
+                            IgnitionVersion =
+                                latestIgnition.IgnitionVersion,
 
-                             JavaVersion =
-                                 latestIgnition.JavaVersion,
+                            JavaVersion =
+                                latestIgnition.JavaVersion,
 
-                             CpuPercent =
-                                 latestIgnition.CpuPercent,
+                            CpuPercent =
+                                latestIgnition.CpuPercent,
 
-                             MemoryMb =
-                                 latestIgnition.MemoryMb,
+                            MemoryMb =
+                                latestIgnition.MemoryMb,
 
-                             UptimeMinutes =
-                                 latestIgnition.UptimeMinutes
-                         }
-             });
+                            UptimeMinutes =
+                                latestIgnition.UptimeMinutes
+                        }
+            });
     }
 
+    // =====================================================================
+    // Current Snapshot Data
+    // =====================================================================
+
     /// <summary>
-    /// Returns latest snapshot for a server.
+    /// Retrieves the latest host snapshot for a server.
     /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <returns>
+    /// Latest host snapshot.
+    /// </returns>
     [HttpGet("{serverId:int}/latest")]
     public async Task<IActionResult> GetLatest(
         int serverId)
     {
         var snapshot =
             await _db.HostSnapshots
-                .Where(x => x.ServerId == serverId)
+                .Where(x =>
+                    x.ServerId == serverId)
                 .OrderByDescending(
                     x => x.SnapshotUtc)
                 .FirstOrDefaultAsync();
@@ -328,6 +377,9 @@ public sealed class ServersController
                 DiskQueueLength =
                     snapshot.DiskQueueLength,
 
+                AvgDiskQueueLength =
+                    snapshot.AvgDiskQueueLength,
+
                 PrimaryNetworkInterface =
                     snapshot.PrimaryNetworkInterface,
 
@@ -354,9 +406,25 @@ public sealed class ServersController
             });
     }
 
+    // =====================================================================
+    // Historical Data
+    // =====================================================================
+
     /// <summary>
-    /// Returns historical snapshots.
+    /// Retrieves historical host snapshot data for a server.
     /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <param name="hours">
+    /// Number of hours of history to retrieve.
+    /// </param>
+    /// <param name="intervalMinutes">
+    /// Optional aggregation interval.
+    /// </param>
+    /// <returns>
+    /// Historical host metrics.
+    /// </returns>
     [HttpGet("{serverId:int}/history")]
     public async Task<IActionResult> GetHistory(
         int serverId,
@@ -366,26 +434,31 @@ public sealed class ServersController
         var cutoff =
             DateTime.UtcNow
                 .AddHours(-hours);
-        
-        var snapshots =
-           await _db.HostSnapshots
-            .Where(x =>
-                x.ServerId == serverId &&
-                x.SnapshotUtc >= cutoff)
-            .OrderBy(x =>
-                x.SnapshotUtc)
-            .ToListAsync();
 
-        if (intervalMinutes == null || intervalMinutes <= 1)
+        var snapshots =
+            await _db.HostSnapshots
+                .Where(x =>
+                    x.ServerId == serverId &&
+                    x.SnapshotUtc >= cutoff)
+                .OrderBy(x =>
+                    x.SnapshotUtc)
+                .ToListAsync();
+
+        if (intervalMinutes == null ||
+            intervalMinutes <= 1)
         {
             return Ok(
                 snapshots.Select(
                     x => new HistoryPointResponse
                     {
-                        TimestampUtc = x.SnapshotUtc,
+                        TimestampUtc =
+                            x.SnapshotUtc,
 
-                        CpuPercent = x.CpuPercent,
-                        MemoryPercent = x.MemoryPercent,
+                        CpuPercent =
+                            x.CpuPercent,
+
+                        MemoryPercent =
+                            x.MemoryPercent,
 
                         DiskPercentUsed =
                             x.DiskPercentUsed,
@@ -412,119 +485,139 @@ public sealed class ServersController
                             x.NetworkBytesSentPerSec
                     }));
         }
-        else
-        {
-            // Create buckets
-            var buckets =
-                snapshots
-                    .GroupBy(x =>
-                    {
-                        var ticks =
-                            TimeSpan
-                                .FromMinutes(
-                                    intervalMinutes.Value)
-                                .Ticks;
 
-                        return new DateTime(
-                            x.SnapshotUtc.Ticks / ticks * ticks,
-                            DateTimeKind.Utc);
-                    })
-                    .OrderBy(x => x.Key)
-                    .ToList();
-
-            // Average each bucket
-            var result = buckets
-                .Select(x =>
-                new HistoryPointResponse
+        var buckets =
+            snapshots
+                .GroupBy(x =>
                 {
-                    TimestampUtc =
-                        x.Key,
+                    var ticks =
+                        TimeSpan
+                            .FromMinutes(
+                                intervalMinutes.Value)
+                            .Ticks;
 
-                    CpuPercent =
-                        Math.Round(
-                            x.Average(y =>
-                                y.CpuPercent),
-                            2),
-
-                    MemoryPercent =
-                        Math.Round(
-                            x.Average(y =>
-                                y.MemoryPercent),
-                            2),
-
-                    DiskPercentUsed =
-                        Math.Round(
-                            x.Average(y =>
-                                y.DiskPercentUsed),
-                            2),
-
-                    DiskReadLatencyMs =
-                        Math.Round(
-                            x.Average(y =>
-                                y.DiskReadLatencyMs),
-                            2),
-
-                    DiskWriteLatencyMs =
-                        Math.Round(
-                            x.Average(y =>
-                                y.DiskWriteLatencyMs),
-                            2),
-
-                    AvgDiskQueueLength =
-                        Math.Round(
-                            x.Average(y =>
-                                y.AvgDiskQueueLength),
-                            2),
-
-                    DiskReadsPerSec =
-                        Math.Round(
-                            x.Average(y =>
-                                y.DiskReadsPerSec),
-                            2),
-
-                    DiskWritesPerSec =
-                        Math.Round(
-                            x.Average(y =>
-                                y.DiskWritesPerSec),
-                            2),
-
-                    NetworkBytesReceivedPerSec =
-                        Math.Round(
-                            x.Average(y =>
-                                y.NetworkBytesReceivedPerSec),
-                            2),
-
-                    NetworkBytesSentPerSec =
-                        Math.Round(
-                            x.Average(y =>
-                                y.NetworkBytesSentPerSec),
-                            2)
+                    return new DateTime(
+                        x.SnapshotUtc.Ticks /
+                        ticks *
+                        ticks,
+                        DateTimeKind.Utc);
                 })
-            .ToList();
+                .OrderBy(x =>
+                    x.Key)
+                .ToList();
 
-            return Ok(result);
-        }
+        var result =
+            buckets
+                .Select(x =>
+                    new HistoryPointResponse
+                    {
+                        TimestampUtc =
+                            x.Key,
+
+                        CpuPercent =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.CpuPercent),
+                                2),
+
+                        MemoryPercent =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.MemoryPercent),
+                                2),
+
+                        DiskPercentUsed =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.DiskPercentUsed),
+                                2),
+
+                        DiskReadLatencyMs =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.DiskReadLatencyMs),
+                                2),
+
+                        DiskWriteLatencyMs =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.DiskWriteLatencyMs),
+                                2),
+
+                        AvgDiskQueueLength =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.AvgDiskQueueLength),
+                                2),
+
+                        DiskReadsPerSec =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.DiskReadsPerSec),
+                                2),
+
+                        DiskWritesPerSec =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.DiskWritesPerSec),
+                                2),
+
+                        NetworkBytesReceivedPerSec =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.NetworkBytesReceivedPerSec),
+                                2),
+
+                        NetworkBytesSentPerSec =
+                            Math.Round(
+                                x.Average(y =>
+                                    y.NetworkBytesSentPerSec),
+                                2)
+                    })
+                .ToList();
+
+        return Ok(
+            result);
     }
 
+    /// <summary>
+    /// Retrieves historical gateway monitoring data.
+    /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <param name="hours">
+    /// Number of hours of history to retrieve.
+    /// </param>
+    /// <param name="intervalMinutes">
+    /// Optional aggregation interval.
+    /// </param>
+    /// <returns>
+    /// Historical gateway metrics.
+    /// </returns>
     [HttpGet("{serverId:int}/gateway-history")]
     public async Task<IActionResult> GetGatewayHistory(
-    int serverId,
-    int hours = 24,
-    int? intervalMinutes = null)
+        int serverId,
+        int hours = 24,
+        int? intervalMinutes = null)
     {
         var cutoff =
-            DateTime.UtcNow.AddHours(-hours);
+            DateTime.UtcNow.AddHours(
+                -hours);
 
         var snapshots =
             await _db.GatewaySnapshots
                 .Where(x =>
-                    x.ServerService.ServerId == serverId &&
+                    x.ServerService.ServerId ==
+                    serverId
+                    &&
                     x.SnapshotUtc >= cutoff)
                 .OrderBy(x =>
                     x.SnapshotUtc)
                 .ToListAsync();
 
-        if (intervalMinutes == null || intervalMinutes <= 1)
+        if (intervalMinutes == null ||
+            intervalMinutes <= 1)
         {
             return Ok(
                 snapshots.Select(
@@ -543,29 +636,30 @@ public sealed class ServersController
                             x.ResponseMs
                     }));
         }
-        else
-        {
-            var buckets =
-                snapshots
-                    .GroupBy(x =>
-                    {
-                        var ticks =
-                            TimeSpan
-                                .FromMinutes(
-                                    intervalMinutes.Value)
-                                .Ticks;
 
-                        return new DateTime(
-                            x.SnapshotUtc.Ticks /
-                            ticks *
-                            ticks,
-                            DateTimeKind.Utc);
-                    })
-                    .OrderBy(x => x.Key)
-                    .ToList();
-            
-            var result =
-                buckets.Select(x =>
+        var buckets =
+            snapshots
+                .GroupBy(x =>
+                {
+                    var ticks =
+                        TimeSpan
+                            .FromMinutes(
+                                intervalMinutes.Value)
+                            .Ticks;
+
+                    return new DateTime(
+                        x.SnapshotUtc.Ticks /
+                        ticks *
+                        ticks,
+                        DateTimeKind.Utc);
+                })
+                .OrderBy(x =>
+                    x.Key)
+                .ToList();
+
+        var result =
+            buckets
+                .Select(x =>
                     new GatewayHistoryResponse
                     {
                         SnapshotUtc =
@@ -585,85 +679,105 @@ public sealed class ServersController
                     })
                 .ToList();
 
-            return Ok(result);
-        }
+        return Ok(
+            result);
     }
 
+    /// <summary>
+    /// Retrieves historical Ignition monitoring data.
+    /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <param name="hours">
+    /// Number of hours of history to retrieve.
+    /// </param>
+    /// <param name="intervalMinutes">
+    /// Optional aggregation interval.
+    /// </param>
+    /// <returns>
+    /// Historical Ignition metrics.
+    /// </returns>
     [HttpGet("{serverId:int}/ignition-history")]
     public async Task<IActionResult> GetIgnitionHistory(
-    int serverId,
-    int hours = 24,
-    int? intervalMinutes = null)
+        int serverId,
+        int hours = 24,
+        int? intervalMinutes = null)
     {
         var cutoff =
-            DateTime.UtcNow.AddHours(-hours);
+            DateTime.UtcNow.AddHours(
+                -hours);
 
         var snapshots =
             await _db.IgnitionSnapshots
                 .Where(x =>
-                    x.ServerService.ServerId == serverId &&
+                    x.ServerService.ServerId ==
+                    serverId
+                    &&
                     x.SnapshotUtc >= cutoff)
                 .OrderBy(x =>
                     x.SnapshotUtc)
                 .ToListAsync();
-            
-            if (intervalMinutes == null || intervalMinutes <= 1)
-                {
-                    return Ok(
-                        snapshots.Select(
-                            x => new IgnitionHistoryResponse
-                            {
-                                SnapshotUtc =
-                                    x.SnapshotUtc,
 
-                                ServiceRunning =
-                                    x.ServiceRunning,
-
-                                ProcessRunning =
-                                    x.ProcessRunning,
-
-                                CpuPercent =
-                                    x.CpuPercent,
-
-                                MemoryMb =
-                                    x.MemoryMb,
-
-                                ThreadCount =
-                                    x.ThreadCount,
-
-                                HandleCount =
-                                    x.HandleCount,
-
-                                UptimeMinutes =
-                                    x.UptimeMinutes,
-
-                                ProcessId =
-                                    x.ProcessId
-                            }));
-                }
-        else
+        if (intervalMinutes == null ||
+            intervalMinutes <= 1)
         {
-            var buckets =
-                snapshots
-                    .GroupBy(x =>
+            return Ok(
+                snapshots.Select(
+                    x => new IgnitionHistoryResponse
                     {
-                        var ticks =
-                            TimeSpan
-                                .FromMinutes(
-                                    intervalMinutes.Value)
-                                .Ticks;
+                        SnapshotUtc =
+                            x.SnapshotUtc,
 
-                        return new DateTime(
-                            x.SnapshotUtc.Ticks /
-                            ticks *
-                            ticks,
-                            DateTimeKind.Utc);
-                    })
-                    .OrderBy(x => x.Key)
-                    .ToList();
-            
-            var result =
-                buckets.Select(x =>
+                        ServiceRunning =
+                            x.ServiceRunning,
+
+                        ProcessRunning =
+                            x.ProcessRunning,
+
+                        CpuPercent =
+                            x.CpuPercent,
+
+                        MemoryMb =
+                            x.MemoryMb,
+
+                        ThreadCount =
+                            x.ThreadCount,
+
+                        HandleCount =
+                            x.HandleCount,
+
+                        UptimeMinutes =
+                            x.UptimeMinutes,
+
+                        ProcessId =
+                            x.ProcessId
+                    }));
+        }
+
+        var buckets =
+            snapshots
+                .GroupBy(x =>
+                {
+                    var ticks =
+                        TimeSpan
+                            .FromMinutes(
+                                intervalMinutes.Value)
+                            .Ticks;
+
+                    return new DateTime(
+                        x.SnapshotUtc.Ticks /
+                        ticks *
+                        ticks,
+                        DateTimeKind.Utc);
+                })
+                .OrderBy(x =>
+                    x.Key)
+                .ToList();
+
+        var result =
+            buckets
+                .Select(x =>
                     new IgnitionHistoryResponse
                     {
                         SnapshotUtc =
@@ -699,218 +813,16 @@ public sealed class ServersController
                                     y.HandleCount)),
 
                         UptimeMinutes =
-                            x.Max(y =>
-                                y.UptimeMinutes),
+                            (long)Math.Round(
+                                x.Average(y =>
+                                    y.UptimeMinutes)),
 
                         ProcessId =
                             x.Last().ProcessId
                     })
                 .ToList();
 
-            return Ok(result);
-        }
-    }
-
-    /// <summary>
-    /// Returns a summary of historical snapshots using average, max, min, etc.
-    /// </summary>
-    [HttpGet("{serverId:int}/history/summary")]
-    public async Task<IActionResult> GetHistorySummary(
-    int serverId,
-    int hours = 24)
-    {
-        var cutoff =
-            DateTime.UtcNow.AddHours(-hours);
-
-        var query =
-            _db.HostSnapshots
-                .Where(x =>
-                    x.ServerId == serverId &&
-                    x.SnapshotUtc >= cutoff);
-
-        var result =
-            new HistorySummaryResponse
-            {
-                CpuAverage =
-                    await query.AverageAsync(
-                        x => x.CpuPercent),
-
-                CpuMaximum =
-                    await query.MaxAsync(
-                        x => x.CpuPercent),
-
-                MemoryAverage =
-                    await query.AverageAsync(
-                        x => x.MemoryPercent),
-
-                MemoryMaximum =
-                    await query.MaxAsync(
-                        x => x.MemoryPercent),
-
-                DiskAverage =
-                    await query.AverageAsync(
-                        x => x.DiskPercentUsed),
-
-                DiskMaximum =
-                    await query.MaxAsync(
-                        x => x.DiskPercentUsed),
-
-                DiskReadLatencyMaximum =
-                    await query.MaxAsync(
-                        x => x.DiskReadLatencyMs),
-
-                DiskWriteLatencyMaximum =
-                    await query.MaxAsync(
-                        x => x.DiskWriteLatencyMs),
-
-                AvgDiskQueueMaximum =
-                    await query.MaxAsync(
-                        x => x.AvgDiskQueueLength),
-
-                NetworkInMaximum =
-                    await query.MaxAsync(
-                        x => x.NetworkBytesReceivedPerSec),
-
-                NetworkOutMaximum =
-                    await query.MaxAsync(
-                        x => x.NetworkBytesSentPerSec)
-            };
-
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Returns a summary of each server
-    /// </summary>
-    [HttpGet("summary")]
-    public async Task<IActionResult> GetSummary()
-    {
-        var servers =
-            await _db.Servers.ToListAsync();
-
-        var healthy = 0;
-        var warning = 0;
-        var critical = 0;
-        var offline = 0;
-
-        foreach (var server in servers)
-        {
-            var latestSnapshot =
-                await _db.HostSnapshots
-                    .Where(x =>
-                        x.ServerId ==
-                        server.ServerId)
-                    .OrderByDescending(
-                        x => x.SnapshotUtc)
-                    .FirstOrDefaultAsync();
-
-            var latestIgnition =
-                await _db.IgnitionSnapshots
-                    .Where(x =>
-                        x.ServerService.ServerId ==
-                        server.ServerId)
-                    .OrderByDescending(x =>
-                        x.SnapshotUtc)
-                    .FirstOrDefaultAsync();
-
-            var latestGateway =
-                await _db.GatewaySnapshots
-                    .Where(x =>
-                        x.ServerService.ServerId ==
-                        server.ServerId)
-                    .OrderByDescending(x =>
-                        x.SnapshotUtc)
-                    .FirstOrDefaultAsync();
-
-            var status =
-                ServerStatusCalculator.Calculate(
-                    server.LastSeenUtc,
-                    latestSnapshot);
-
-            switch (status)
-            {
-                case "Healthy":
-                    healthy++;
-                    break;
-
-                case "Warning":
-                    warning++;
-                    break;
-
-                case "Critical":
-                    critical++;
-                    break;
-
-                case "Offline":
-                    offline++;
-                    break;
-            }
-        }
-
         return Ok(
-            new ServerHealthSummaryResponse
-            {
-                Healthy =
-                    healthy,
-
-                Warning =
-                    warning,
-
-                Critical =
-                    critical,
-
-                Offline =
-                    offline
-            });
-    }
-
-    [HttpGet("{serverId:int}/alerts")]
-    public async Task<IActionResult> GetAlerts(
-        int serverId,
-        int count = 20)
-    {
-        var alerts =
-            await _db.AlertEvents
-                .Where(x =>
-                    x.ServerId == serverId)
-                .OrderByDescending(x =>
-                    x.OpenedUtc)
-                .Take(count)
-                .Select(x =>
-                    new AlertHistoryResponse
-                    {
-                        AlertEventId =
-                            x.AlertEventId,
-
-                        Status =
-                            x.Status.ToString(),
-
-                        Message =
-                            x.Message,
-
-                        OpenedUtc =
-                            DateTime.SpecifyKind(
-                                x.OpenedUtc,
-                                DateTimeKind.Utc),
-
-                        ClosedUtc =
-                            x.ClosedUtc == null
-                                ? null
-                                : DateTime.SpecifyKind(
-                                    x.ClosedUtc.Value,
-                                    DateTimeKind.Utc),
-
-                        FirstTriggeredUtc =
-                            x.FirstTriggeredUtc,
-
-                        OccurrenceCount =
-                            x.OccurrenceCount,
-
-                        RuleName =
-                            x.AlertRule.RuleName
-                    })
-                .ToListAsync();
-
-        return Ok(alerts);
+            result);
     }
 }

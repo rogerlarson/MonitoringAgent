@@ -1,0 +1,9 @@
+$serviceName =
+    "MonitoringAgentAgent"
+
+Stop-Service `
+    $serviceName `
+    -Force
+
+sc.exe delete `
+    $serviceName

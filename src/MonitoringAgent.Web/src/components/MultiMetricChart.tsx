@@ -46,9 +46,13 @@ export default function MultiMetricChart(
                         vertical={false}
                     />
                     <XAxis
-                        dataKey="time"
+                        type="number"
+                        dataKey="timestamp"
+                        domain={["dataMin", "dataMax"]}
                         tick={{ fontSize: 10 }}
-                        minTickGap={75}
+                        tickFormatter={value =>
+                            new Date(value)
+                                .toLocaleTimeString()}
                     />
 
                     <YAxis />

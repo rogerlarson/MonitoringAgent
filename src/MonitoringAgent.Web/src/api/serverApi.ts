@@ -10,11 +10,6 @@ import type {
 }
 from "../models/ServerDetailsResponse";
 
-import type {
-    ServerHistoryPointResponse
-}
-from "../models/ServerHistoryPointResponse";
-
 import type { GatewayHistoryResponse }
     from "../models/GatewayHistoryResponse";
 
@@ -23,6 +18,18 @@ import type { IgnitionHistoryResponse }
 
 import type { AlertHistoryResponse }
     from "../models/AlertHistoryResponse";
+
+import type
+{
+    GatewaySnapshotResponse
+}
+from "../models/GatewaySnapshotResponse";
+
+import type
+{
+    IgnitionSnapshotResponse
+}
+from "../models/IgnitionSnapshotResponse";
 
 export async function getServers()
 {
@@ -58,7 +65,7 @@ export async function getHostHistory(
 export async function getGatewayHistory(
     id: number,
     hours: number,
-    intervalMinutes: number)
+    intervalMinutes: number) : Promise<GatewaySnapshotResponse[]>
 {
     const response =
         await api.get<
@@ -71,7 +78,7 @@ export async function getGatewayHistory(
 export async function getIgnitionHistory(
     id: number,
     hours: number,
-    intervalMinutes: number)
+    intervalMinutes: number) : Promise<IgnitionSnapshotResponse[]>
 {
     const response =
         await api.get<
@@ -93,35 +100,3 @@ export async function getAlerts(
     return response.data;
 }
 
-export async function acknowledgeAlert(
-    alertId: number)
-{
-    await api.post(
-        `/alerts/${alertId}/acknowledge`,
-        {});
-}
-
-export async function unacknowledgeAlert(
-    alertId: number)
-{
-    await api.post(
-        `/alerts/${alertId}/unacknowledge`);
-}
-
-export async function suppressAlert(
-    alertId: number,
-    hours: number = 4)
-{
-    await api.post(
-        `/alerts/${alertId}/suppress`,
-        {
-            hours
-        });
-}
-
-export async function unsuppressAlert(
-    alertId: number)
-{
-    await api.post(
-        `/alerts/${alertId}/unsuppress`);
-}

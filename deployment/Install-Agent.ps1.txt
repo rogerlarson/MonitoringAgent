@@ -1,0 +1,23 @@
+param(
+    [string]$InstallPath =
+        "C:\MonitoringAgent\Agent"
+)
+
+$serviceName =
+    "MonitoringAgentAgent"
+
+Write-Host "Installing Agent Service..."
+
+if (Get-Service -Name $serviceName -ErrorAction SilentlyContinue)
+{
+    Write-Host "Service already exists."
+    exit
+}
+
+sc.exe create `
+    $serviceName `
+    binPath= "$InstallPath\MonitoringAgent.Agent.exe"
+
+sc.exe start $serviceName
+
+Write-Host "Agent service installed."

@@ -1,0 +1,17 @@
+.error-message {
+    padding: 16px;
+
+    border: 1px solid #7f1d1d;
+    border-radius: 8px;
+
+    background: rgba(
+        239,
+        68,
+        68,
+        0.10
+    );
+
+    color: #ef4444;
+
+    margin-bottom: 20px;
+}

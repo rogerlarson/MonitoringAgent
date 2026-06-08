@@ -1,5 +1,11 @@
 import axios from "axios";
 
-export const api = axios.create({
-    baseURL: "https://localhost:7216/api"
-});
+import {
+    API_BASE_URL
+}
+from "../constants/Environment";
+
+export const api =
+    axios.create({
+        baseURL: API_BASE_URL
+    });

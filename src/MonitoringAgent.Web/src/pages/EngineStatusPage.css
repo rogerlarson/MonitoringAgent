@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.engine-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.engine-status-title {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Summary Cards
+   ========================================================================== */
+
+.engine-status-summary {
+    margin-top: 24px;
+    margin-bottom: 30px;
+
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(220px, 1fr)
+    );
+    gap: 20px;
+}

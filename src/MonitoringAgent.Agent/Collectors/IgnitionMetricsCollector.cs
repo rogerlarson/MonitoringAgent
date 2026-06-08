@@ -1,11 +1,15 @@
 ﻿// ============================================================================
-// Project : MonitoringAgent.Agent
-// File    : IgnitionMetricsCollector.cs
+// Project: MonitoringAgent.Agent
+// File: IgnitionMetricsCollector.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Collects Ignition-specific metrics from the local machine.
 //
-// Purpose
-// -------
-// Collects Ignition-specific metrics.
-//
+//      Retrieves Ignition service status, process information, resource
+//      utilization, version details, and runtime statistics used for
+//      monitoring, alerting, and health reporting.
 // ============================================================================
 
 // TODO:
@@ -28,20 +32,52 @@ namespace MonitoringAgent.Agent.Collectors;
 /// </summary>
 public sealed class IgnitionMetricsCollector
 {
+    // =====================================================================
+    // Dependencies
+    // =====================================================================
+
     private readonly AgentSettings _settings;
+
+    // =====================================================================
+    // CPU Sampling State
+    // =====================================================================
+
     private TimeSpan _lastTotalProcessorTime;
     private DateTime _lastCpuSampleUtc;
 
+    // =====================================================================
+    // Constructor
+    // =====================================================================
+
+    /// <summary>
+    /// Initializes a new instance of the collector.
+    /// </summary>
+    /// <param name="settings">
+    /// Agent configuration settings.
+    /// </param>
     public IgnitionMetricsCollector(
         IOptions<AgentSettings> settings)
     {
-        _settings = settings.Value;
-        _lastCpuSampleUtc = DateTime.UtcNow;
+        _settings =
+            settings.Value;
+
+        _lastCpuSampleUtc =
+            DateTime.UtcNow;
     }
+
+    // =====================================================================
+    // Metric Collection
+    // =====================================================================
 
     /// <summary>
     /// Populates Ignition metrics on the supplied snapshot.
     /// </summary>
+    /// <param name="snapshot">
+    /// Snapshot being populated.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
     public Task PopulateAsync(
         HealthSnapshot snapshot,
         CancellationToken cancellationToken)
@@ -56,38 +92,53 @@ public sealed class IgnitionMetricsCollector
             process != null;
 
         snapshot.IgnitionProcessId =
-            GetIgnitionProcessId(process);
+            GetIgnitionProcessId(
+                process);
 
         snapshot.IgnitionMemoryMb =
-            GetIgnitionMemoryMb(process);
+            GetIgnitionMemoryMb(
+                process);
 
         snapshot.IgnitionThreadCount =
-            GetIgnitionThreadCount(process);
+            GetIgnitionThreadCount(
+                process);
 
         snapshot.IgnitionHandleCount =
-            GetIgnitionHandleCount(process);
+            GetIgnitionHandleCount(
+                process);
 
         snapshot.IgnitionUptimeMinutes =
-            GetIgnitionUptimeMinutes(process);
+            GetIgnitionUptimeMinutes(
+                process);
 
         snapshot.IgnitionCpuPercent =
-            GetIgnitionCpuPercent(process);
+            GetIgnitionCpuPercent(
+                process);
 
         snapshot.IgnitionProcessName =
-            process?.ProcessName ?? string.Empty;
+            process?.ProcessName
+            ?? string.Empty;
 
         snapshot.IgnitionVersion =
             GetIgnitionVersion();
 
         snapshot.JavaVersion =
-            GetJavaVersion(process);
+            GetJavaVersion(
+                process);
 
         return Task.CompletedTask;
     }
 
+    // =====================================================================
+    // Service Detection
+    // =====================================================================
+
     /// <summary>
     /// Determines whether the Ignition Windows service is running.
     /// </summary>
+    /// <returns>
+    /// True if the service is running; otherwise false.
+    /// </returns>
     private bool IsIgnitionServiceRunning()
     {
         try
@@ -105,9 +156,16 @@ public sealed class IgnitionMetricsCollector
         }
     }
 
+    // =====================================================================
+    // Process Detection
+    // =====================================================================
+
     /// <summary>
     /// Returns the Ignition JVM process.
     /// </summary>
+    /// <returns>
+    /// Ignition Java process if found; otherwise null.
+    /// </returns>
     private Process? GetIgnitionProcess()
     {
         return Process
@@ -120,20 +178,31 @@ public sealed class IgnitionMetricsCollector
     /// <summary>
     /// Returns the Ignition process identifier.
     /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Process identifier or zero if unavailable.
+    /// </returns>
     private static int GetIgnitionProcessId(
         Process? process)
     {
-        if (process == null)
-        {
-            return 0;
-        }
-
-        return process.Id;
+        return process?.Id ?? 0;
     }
+
+    // =====================================================================
+    // Resource Utilization
+    // =====================================================================
 
     /// <summary>
     /// Returns Ignition memory usage in megabytes.
     /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Memory usage in MB.
+    /// </returns>
     private static long GetIgnitionMemoryMb(
         Process? process)
     {
@@ -150,61 +219,42 @@ public sealed class IgnitionMetricsCollector
     /// <summary>
     /// Returns the Ignition thread count.
     /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Thread count.
+    /// </returns>
     private static int GetIgnitionThreadCount(
         Process? process)
     {
-        if (process == null)
-        {
-            return 0;
-        }
-
-        return process.Threads.Count;
+        return process?.Threads.Count ?? 0;
     }
 
     /// <summary>
     /// Returns the Ignition handle count.
     /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Handle count.
+    /// </returns>
     private static int GetIgnitionHandleCount(
         Process? process)
     {
-        if (process == null)
-        {
-            return 0;
-        }
-
-        return process.HandleCount;
+        return process?.HandleCount ?? 0;
     }
 
     /// <summary>
-    /// Returns Ignition uptime in minutes.
+    /// Calculates Ignition CPU utilization percentage.
     /// </summary>
-    private static long GetIgnitionUptimeMinutes(
-        Process? process)
-    {
-        if (process == null)
-        {
-            return 0;
-        }
-
-        try
-        {
-            return (long)(
-                DateTime.Now -
-                process.StartTime)
-                .TotalMinutes;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(
-                $"UPTIME ERROR: {ex}");
-
-            return 0;
-        }
-    }
-
-    /// <summary>
-    /// Returns Ignition CPU %...
-    /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// CPU utilization percentage.
+    /// </returns>
     private decimal GetIgnitionCpuPercent(
         Process? process)
     {
@@ -250,8 +300,7 @@ public sealed class IgnitionMetricsCollector
                  previousTime)
                 .TotalMilliseconds;
 
-            // IMPORTANT:
-            // Update baseline for next sample.
+            // Update baseline for the next sample.
             _lastTotalProcessorTime =
                 currentCpu;
 
@@ -268,22 +317,66 @@ public sealed class IgnitionMetricsCollector
                 / elapsedMs
                 / Environment.ProcessorCount
                 * 100.0;
-            
+
             return Math.Round(
                 (decimal)cpuPercent,
                 2);
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine(
-                $"CPU ERROR: {ex}");
-
             return 0;
         }
     }
 
+    // =====================================================================
+    // Runtime Information
+    // =====================================================================
+
+    /// <summary>
+    /// Returns Ignition uptime in minutes.
+    /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Uptime in minutes.
+    /// </returns>
+    private static long GetIgnitionUptimeMinutes(
+        Process? process)
+    {
+        if (process == null)
+        {
+            return 0;
+        }
+
+        try
+        {
+            return (long)(
+                DateTime.Now -
+                process.StartTime)
+                .TotalMinutes;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    // =====================================================================
+    // Version Information
+    // =====================================================================
+
+    /// <summary>
+    /// Returns the Java runtime version used by the Ignition process.
+    /// </summary>
+    /// <param name="process">
+    /// Ignition process.
+    /// </param>
+    /// <returns>
+    /// Java version string.
+    /// </returns>
     private static string GetJavaVersion(
-    Process? process)
+        Process? process)
     {
         try
         {
@@ -301,6 +394,12 @@ public sealed class IgnitionMetricsCollector
         }
     }
 
+    /// <summary>
+    /// Returns the installed Ignition version.
+    /// </summary>
+    /// <returns>
+    /// Ignition version string.
+    /// </returns>
     private string GetIgnitionVersion()
     {
         try
@@ -310,12 +409,14 @@ public sealed class IgnitionMetricsCollector
                     _settings.IgnitionInstallPath,
                     "lib",
                     "install-info.txt");
-            // Check if install-info.txt file exists in /lib/
+
+            // Verify the install information file exists.
             if (!File.Exists(path))
             {
                 return string.Empty;
             }
-            // Loop over all lines in install-info.txt to get the gateway.version=X.Y.Z
+
+            // Extract the gateway.version entry.
             foreach (var line in File.ReadAllLines(path))
             {
                 if (line.StartsWith(

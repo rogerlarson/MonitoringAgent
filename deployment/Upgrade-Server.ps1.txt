@@ -1,0 +1,48 @@
+$root =
+    "C:\MonitoringAgent"
+
+Write-Host ""
+Write-Host "===================================="
+Write-Host "MonitoringAgent Server Upgrade"
+Write-Host "===================================="
+Write-Host ""
+
+Write-Host "Stopping Engine..."
+
+Stop-Service `
+    MonitoringAgentEngine `
+    -ErrorAction SilentlyContinue
+
+Write-Host ""
+Write-Host "Stopping IIS Sites..."
+
+Stop-Website `
+    "MonitoringAgentApi"
+
+Stop-Website `
+    "MonitoringAgentWeb"
+
+Write-Host ""
+Write-Host "Deploy new files now."
+Write-Host ""
+
+Read-Host `
+    "Press ENTER when deployment is complete"
+
+Write-Host ""
+Write-Host "Starting IIS Sites..."
+
+Start-Website `
+    "MonitoringAgentApi"
+
+Start-Website `
+    "MonitoringAgentWeb"
+
+Write-Host ""
+Write-Host "Starting Engine..."
+
+Start-Service `
+    MonitoringAgentEngine
+
+Write-Host ""
+Write-Host "Upgrade completed."

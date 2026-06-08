@@ -1,42 +1,96 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// ============================================================================
+// Project: MonitoringAgent.Api
+// File: HealthController.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Receives health snapshots from monitoring agents and persists
+//      monitoring data to the database.
+//
+//      This endpoint is the primary ingestion point for host, gateway,
+//      and Ignition monitoring data collected by deployed agents.
+// ============================================================================
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MonitoringAgent.Api.Configuration;
-using MonitoringAgent.Api.Data;
-using MonitoringAgent.Api.Data.Entities;
-using MonitoringAgent.Api.Data.Enums;
-using MonitoringAgent.Api.Services;
+using MonitoringAgent.Common.Entities;
+using MonitoringAgent.Common.Enums;
 using MonitoringAgent.Common.Models;
+using MonitoringAgent.Data;
 
 namespace MonitoringAgent.Api.Controllers;
 
+/// <summary>
+/// Receives and processes monitoring agent health snapshots.
+/// </summary>
 [ApiController]
 [Route("api/health")]
 public sealed class HealthController
     : ControllerBase
 {
+    // =====================================================================
+    // Dependencies
+    // =====================================================================
+
     private readonly ILogger<HealthController> _logger;
     private readonly MonitoringDbContext _db;
-    private readonly AlertService _alertService;
-    private readonly MonitoringSettings _settings;
+    private readonly ApiSettings _settings;
 
+    // =====================================================================
+    // Constructor
+    // =====================================================================
+
+    /// <summary>
+    /// Initializes a new instance of the controller.
+    /// </summary>
+    /// <param name="logger">
+    /// Logger instance.
+    /// </param>
+    /// <param name="db">
+    /// Database context.
+    /// </param>
+    /// <param name="settings">
+    /// API configuration settings.
+    /// </param>
     public HealthController(
         ILogger<HealthController> logger,
         MonitoringDbContext db,
-        AlertService alertService,
-        MonitoringSettings settings)
+        ApiSettings settings)
     {
-        _logger = logger;
-        _db = db;
-        _alertService = alertService;
-        _settings = settings;
+        _logger =
+            logger;
+
+        _db =
+            db;
+
+        _settings =
+            settings;
     }
 
+    // =====================================================================
+    // Health Snapshot Ingestion
+    // =====================================================================
+
+    /// <summary>
+    /// Receives a health snapshot from a monitoring agent.
+    /// </summary>
+    /// <param name="snapshot">
+    /// Health snapshot payload.
+    /// </param>
+    /// <returns>
+    /// Success response.
+    /// </returns>
     [HttpPost]
     public async Task<IActionResult> Post(
-    [FromBody] HealthSnapshot snapshot)
+        [FromBody]
+        HealthSnapshot snapshot)
     {
-        // If API Key is required, check it, return unauthorized
-        // if not present in headers or does not match
+        // -----------------------------------------------------------------
+        // API Key Validation
+        // -----------------------------------------------------------------
+
         if (_settings.RequireApiKey)
         {
             if (!Request.Headers.TryGetValue(
@@ -52,6 +106,10 @@ public sealed class HealthController
             }
         }
 
+        // -----------------------------------------------------------------
+        // Logging
+        // -----------------------------------------------------------------
+
         _logger.LogInformation(
             "Received snapshot from {ServerName}",
             snapshot.ServerName);
@@ -60,34 +118,62 @@ public sealed class HealthController
             "Database can connect: {Connected}",
             _db.Database.CanConnect());
 
-        var server = await _db.Servers
-            .FirstOrDefaultAsync(
-                x => x.ServerName ==
-                     snapshot.ServerName);
+        // -----------------------------------------------------------------
+        // Server Registration / Update
+        // -----------------------------------------------------------------
+
+        var server =
+            await _db.Servers
+                .FirstOrDefaultAsync(
+                    x =>
+                        x.ServerName ==
+                        snapshot.ServerName);
 
         if (server == null)
         {
-            server = new ServerEntity
-            {
-                ServerName = snapshot.ServerName,
-                CreatedDateUtc = DateTime.UtcNow,
-                LastSeenUtc = DateTime.UtcNow,
-                Status = "Unknown",
-                OperatingSystem = snapshot.OperatingSystem,
-                OperatingSystemVersion = snapshot.OperatingSystemVersion,
-                ProcessorCount = snapshot.ProcessorCount,
-                TotalMemoryMb = snapshot.TotalMemoryMb,
-                AgentVersion = snapshot.AgentVersion,
-                DomainName = snapshot.DomainName
-            };
+            server =
+                new ServerEntity
+                {
+                    ServerName =
+                        snapshot.ServerName,
 
-            _db.Servers.Add(server);
+                    CreatedDateUtc =
+                        DateTime.UtcNow,
+
+                    LastSeenUtc =
+                        DateTime.UtcNow,
+
+                    Status =
+                        ServerStatus.Unknown,
+
+                    OperatingSystem =
+                        snapshot.OperatingSystem,
+
+                    OperatingSystemVersion =
+                        snapshot.OperatingSystemVersion,
+
+                    ProcessorCount =
+                        snapshot.ProcessorCount,
+
+                    TotalMemoryMb =
+                        snapshot.TotalMemoryMb,
+
+                    AgentVersion =
+                        snapshot.AgentVersion,
+
+                    DomainName =
+                        snapshot.DomainName
+                };
+
+            _db.Servers.Add(
+                server);
 
             await _db.SaveChangesAsync();
         }
         else
         {
-            server.LastSeenUtc = DateTime.UtcNow;
+            server.LastSeenUtc =
+                DateTime.UtcNow;
 
             server.OperatingSystem =
                 snapshot.OperatingSystem;
@@ -101,87 +187,137 @@ public sealed class HealthController
             server.TotalMemoryMb =
                 snapshot.TotalMemoryMb;
 
-            server.AgentVersion = snapshot.AgentVersion;
+            server.AgentVersion =
+                snapshot.AgentVersion;
 
-            server.DomainName = snapshot.DomainName;
+            server.DomainName =
+                snapshot.DomainName;
 
             await _db.SaveChangesAsync();
         }
 
-        // Check if the server services exist or not, add if not.. auto-registration...
-        await EnsureServerServicesExist(server.ServerId);
+        // -----------------------------------------------------------------
+        // Service Auto Registration
+        // -----------------------------------------------------------------
 
-        var entity = new HostSnapshotEntity
-        {
-            ServerId = server.ServerId,
+        await EnsureServerServicesExist(
+            server.ServerId);
 
-            SnapshotUtc = snapshot.SnapshotUtc,
+        // -----------------------------------------------------------------
+        // Host Snapshot Creation
+        // -----------------------------------------------------------------
 
-            // System
+        var entity =
+            new HostSnapshotEntity
+            {
+                ServerId =
+                    server.ServerId,
 
-            CpuPercent = snapshot.CpuPercent,
-            MemoryPercent = snapshot.MemoryPercent,
-            AvailableMemoryMb = snapshot.AvailableMemoryMb,
-            ProcessCount = snapshot.ProcessCount,
-            SystemUptimeMinutes = snapshot.SystemUptimeMinutes,
-            ContextSwitchesPerSec = snapshot.ContextSwitchesPerSec,
-            PageFaultsPerSec = snapshot.PageFaultsPerSec,
+                SnapshotUtc =
+                    snapshot.SnapshotUtc,
 
-            // Disk
+                // System
 
-            SystemDrive = snapshot.SystemDrive,
-            DiskPercentUsed = snapshot.DiskPercentUsed,
-            DiskFreeGb = snapshot.DiskFreeGb,
-            DiskReadsPerSec = snapshot.DiskReadsPerSec,
-            DiskWritesPerSec = snapshot.DiskWritesPerSec,
-            DiskReadLatencyMs = snapshot.DiskReadLatencyMs,
-            DiskWriteLatencyMs = snapshot.DiskWriteLatencyMs,
-            DiskQueueLength = snapshot.DiskQueueLength,
-            AvgDiskQueueLength = snapshot.AvgDiskQueueLength,
+                CpuPercent =
+                    snapshot.CpuPercent,
 
-            // Network
+                MemoryPercent =
+                    snapshot.MemoryPercent,
 
-            PrimaryNetworkInterface =
-                snapshot.PrimaryNetworkInterface,
+                AvailableMemoryMb =
+                    snapshot.AvailableMemoryMb,
 
-            NetworkBytesReceivedPerSec =
-                snapshot.NetworkBytesReceivedPerSec,
+                ProcessCount =
+                    snapshot.ProcessCount,
 
-            NetworkBytesSentPerSec =
-                snapshot.NetworkBytesSentPerSec,
+                SystemUptimeMinutes =
+                    snapshot.SystemUptimeMinutes,
 
-            NetworkReceiveErrors =
-                snapshot.NetworkReceiveErrors,
+                ContextSwitchesPerSec =
+                    snapshot.ContextSwitchesPerSec,
 
-            NetworkSendErrors =
-                snapshot.NetworkSendErrors,
+                PageFaultsPerSec =
+                    snapshot.PageFaultsPerSec,
 
-            NetworkReceiveDiscards =
-                snapshot.NetworkReceiveDiscards,
+                // Disk
 
-            NetworkSendDiscards =
-                snapshot.NetworkSendDiscards,
+                SystemDrive =
+                    snapshot.SystemDrive,
 
-            TcpRetransmissionsPerSec =
-                snapshot.TcpRetransmissionsPerSec,
+                DiskPercentUsed =
+                    snapshot.DiskPercentUsed,
 
-            // Metadata
+                DiskFreeGb =
+                    snapshot.DiskFreeGb,
 
-            CreatedDateUtc = DateTime.UtcNow
-        };
+                DiskReadsPerSec =
+                    snapshot.DiskReadsPerSec,
 
-        _db.HostSnapshots.Add(entity);
+                DiskWritesPerSec =
+                    snapshot.DiskWritesPerSec,
+
+                DiskReadLatencyMs =
+                    snapshot.DiskReadLatencyMs,
+
+                DiskWriteLatencyMs =
+                    snapshot.DiskWriteLatencyMs,
+
+                DiskQueueLength =
+                    snapshot.DiskQueueLength,
+
+                AvgDiskQueueLength =
+                    snapshot.AvgDiskQueueLength,
+
+                // Network
+
+                PrimaryNetworkInterface =
+                    snapshot.PrimaryNetworkInterface,
+
+                NetworkBytesReceivedPerSec =
+                    snapshot.NetworkBytesReceivedPerSec,
+
+                NetworkBytesSentPerSec =
+                    snapshot.NetworkBytesSentPerSec,
+
+                NetworkReceiveErrors =
+                    snapshot.NetworkReceiveErrors,
+
+                NetworkSendErrors =
+                    snapshot.NetworkSendErrors,
+
+                NetworkReceiveDiscards =
+                    snapshot.NetworkReceiveDiscards,
+
+                NetworkSendDiscards =
+                    snapshot.NetworkSendDiscards,
+
+                TcpRetransmissionsPerSec =
+                    snapshot.TcpRetransmissionsPerSec,
+
+                // Metadata
+
+                CreatedDateUtc =
+                    DateTime.UtcNow
+            };
+
+        _db.HostSnapshots.Add(
+            entity);
+
+        // -----------------------------------------------------------------
+        // Ignition Snapshot Creation
+        // -----------------------------------------------------------------
 
         var ignitionService =
-        await _db.ServerServices
-        .Include(x => x.Service)
-        .FirstOrDefaultAsync(
-            x =>
-                x.ServerId ==
-                server.ServerId
-                &&
-                x.Service.ServiceName ==
-                "Ignition");
+            await _db.ServerServices
+                .Include(x =>
+                    x.Service)
+                .FirstOrDefaultAsync(
+                    x =>
+                        x.ServerId ==
+                        server.ServerId
+                        &&
+                        x.Service.ServiceName ==
+                        "Ignition");
 
         if (ignitionService != null)
         {
@@ -231,25 +367,25 @@ public sealed class HealthController
                         DateTime.UtcNow
                 };
 
-            await _alertService
-                .EvaluateIgnitionSnapshot(
-                    server.ServerId,
-                    ignitionEntity);
-
-            _db.IgnitionSnapshots
-                .Add(ignitionEntity);
+            _db.IgnitionSnapshots.Add(
+                ignitionEntity);
         }
 
+        // -----------------------------------------------------------------
+        // Gateway Snapshot Creation
+        // -----------------------------------------------------------------
+
         var gatewayService =
-        await _db.ServerServices
-        .Include(x => x.Service)
-        .FirstOrDefaultAsync(
-            x =>
-                x.ServerId ==
-                server.ServerId
-                &&
-                x.Service.ServiceName ==
-                "Gateway");
+            await _db.ServerServices
+                .Include(x =>
+                    x.Service)
+                .FirstOrDefaultAsync(
+                    x =>
+                        x.ServerId ==
+                        server.ServerId
+                        &&
+                        x.Service.ServiceName ==
+                        "Gateway");
 
         if (gatewayService != null)
         {
@@ -275,33 +411,32 @@ public sealed class HealthController
                         DateTime.UtcNow
                 };
 
-            await _alertService
-                .EvaluateGatewaySnapshot(
-                    server.ServerId,
-                    gatewayEntity);
-
-            _db.GatewaySnapshots
-                .Add(gatewayEntity);
+            _db.GatewaySnapshots.Add(
+                gatewayEntity);
         }
 
-        await _alertService
-            .EvaluateHostSnapshot(
-                server.ServerId,
-                entity);
-
-        // Calculate the server status for the database entry for this server...
-        server.Status =
-            ServerStatusCalculator.Calculate(
-                server.LastSeenUtc,
-                entity);
+        // -----------------------------------------------------------------
+        // Persist Snapshot Data
+        // -----------------------------------------------------------------
 
         await _db.SaveChangesAsync();
 
         return Ok();
     }
 
+    // =====================================================================
+    // Service Registration Helpers
+    // =====================================================================
+
+    /// <summary>
+    /// Ensures that all globally registered services exist for the
+    /// specified server.
+    /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
     private async Task EnsureServerServicesExist(
-    int serverId)
+        int serverId)
     {
         var serviceIds =
             await _db.ServerServices
@@ -316,7 +451,8 @@ public sealed class HealthController
             await _db.Services
                 .Where(x =>
                     x.RegistrationMode ==
-                    ServiceRegistrationMode.Global &&
+                    ServiceRegistrationMode.Global
+                    &&
                     !serviceIds.Contains(
                         x.ServiceId))
                 .ToListAsync();
@@ -342,5 +478,7 @@ public sealed class HealthController
                         DateTime.UtcNow
                 });
         }
+
+        await _db.SaveChangesAsync();
     }
 }

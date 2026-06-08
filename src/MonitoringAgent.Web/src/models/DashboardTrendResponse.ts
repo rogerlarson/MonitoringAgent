@@ -1,3 +1,5 @@
+import type TopProblemServerResponse from './TopProblemServerResponse'
+
 export interface DashboardTrendResponse {
     cpuAverage: number;
     cpuMaximum: number;
@@ -18,4 +20,13 @@ export interface DashboardTrendResponse {
     warningServers: number;
     criticalServers: number;
     offlineServers: number;
+
+    openAlerts: number;
+    criticalAlerts: number;
+
+    runningWorkers: number;
+    stoppedWorkers: number;
+
+    topProblemServers:
+    TopProblemServerResponse[];
 }

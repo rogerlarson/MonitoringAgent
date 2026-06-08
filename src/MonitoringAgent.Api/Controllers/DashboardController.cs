@@ -1,24 +1,66 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// ============================================================================
+// Project: MonitoringAgent.Api
+// File: DashboardController.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Provides dashboard and monitoring summary operations.
+//
+//      Exposes high-level monitoring data used by the dashboard including
+//      server status, alert summaries, server health information, and
+//      monitoring statistics.
+// ============================================================================
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MonitoringAgent.Api.Data;
-using MonitoringAgent.Api.Data.Enums;
 using MonitoringAgent.Api.Models.Responses;
+using MonitoringAgent.Common.Enums;
+using MonitoringAgent.Data;
 
 namespace MonitoringAgent.Api.Controllers;
 
+/// <summary>
+/// Provides dashboard and monitoring summary operations.
+/// </summary>
 [ApiController]
 [Route("api/dashboard")]
 public sealed class DashboardController
     : ControllerBase
 {
+    // =====================================================================
+    // Dependencies
+    // =====================================================================
+
     private readonly MonitoringDbContext _db;
 
+    // =====================================================================
+    // Constructor
+    // =====================================================================
+
+    /// <summary>
+    /// Initializes a new instance of the controller.
+    /// </summary>
+    /// <param name="db">
+    /// Database context.
+    /// </param>
     public DashboardController(
         MonitoringDbContext db)
     {
-        _db = db;
+        _db =
+            db;
     }
 
+    // =====================================================================
+    // Dashboard Summary
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves high-level monitoring dashboard statistics.
+    /// </summary>
+    /// <returns>
+    /// Dashboard summary information.
+    /// </returns>
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
     {
@@ -86,6 +128,16 @@ public sealed class DashboardController
             });
     }
 
+    // =====================================================================
+    // Recent Alerts
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves the most recent alert activity.
+    /// </summary>
+    /// <returns>
+    /// Collection of recent alerts.
+    /// </returns>
     [HttpGet("recent-alerts")]
     public async Task<IActionResult> GetRecentAlerts()
     {
@@ -135,6 +187,16 @@ public sealed class DashboardController
             alerts);
     }
 
+    // =====================================================================
+    // Server Summary
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves a summary of all monitored servers.
+    /// </summary>
+    /// <returns>
+    /// Collection of server summary information.
+    /// </returns>
     [HttpGet("servers")]
     public async Task<IActionResult> GetServers()
     {
@@ -174,6 +236,16 @@ public sealed class DashboardController
             servers);
     }
 
+    // =====================================================================
+    // Server Health Summary
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves aggregate server health statistics.
+    /// </summary>
+    /// <returns>
+    /// Server health summary information.
+    /// </returns>
     [HttpGet("server-health")]
     public async Task<IActionResult> GetServerHealth()
     {
@@ -201,12 +273,15 @@ public sealed class DashboardController
 
             var hasCritical =
                 await _db.AlertEvents
-                    .Include(x => x.AlertRule)
+                    .Include(x =>
+                        x.AlertRule)
                     .AnyAsync(x =>
-                        x.ServerId == server.ServerId &&
-                        x.Status != AlertStatus.Closed &&
+                        x.ServerId ==
+                        server.ServerId &&
+                        x.Status !=
+                        AlertStatus.Closed &&
                         x.AlertRule!.Severity ==
-                            AlertSeverity.Critical);
+                        AlertSeverity.Critical);
 
             if (hasCritical)
             {
@@ -216,12 +291,15 @@ public sealed class DashboardController
 
             var hasWarning =
                 await _db.AlertEvents
-                    .Include(x => x.AlertRule)
+                    .Include(x =>
+                        x.AlertRule)
                     .AnyAsync(x =>
-                        x.ServerId == server.ServerId &&
-                        x.Status != AlertStatus.Closed &&
+                        x.ServerId ==
+                        server.ServerId &&
+                        x.Status !=
+                        AlertStatus.Closed &&
                         x.AlertRule!.Severity ==
-                            AlertSeverity.Warning);
+                        AlertSeverity.Warning);
 
             if (hasWarning)
             {
@@ -232,12 +310,26 @@ public sealed class DashboardController
             response.Healthy++;
         }
 
-        return Ok(response);
+        return Ok(
+            response);
     }
 
+    // =====================================================================
+    // Server Details
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves detailed monitoring information for a specific server.
+    /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <returns>
+    /// Detailed server information.
+    /// </returns>
     [HttpGet("server/{serverId:int}")]
     public async Task<IActionResult> GetServer(
-    int serverId)
+        int serverId)
     {
         var server =
             await _db.Servers
@@ -371,12 +463,26 @@ public sealed class DashboardController
             });
     }
 
+    // =====================================================================
+    // Dashboard Trends
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves dashboard trend and aggregate monitoring statistics.
+    /// </summary>
+    /// <param name="hours">
+    /// Number of historical hours to evaluate.
+    /// </param>
+    /// <returns>
+    /// Dashboard trend information.
+    /// </returns>
     [HttpGet("trends")]
     public async Task<IActionResult> GetTrends(
         int hours = 24)
     {
         var cutoff =
-            DateTime.UtcNow.AddHours(-hours);
+            DateTime.UtcNow.AddHours(
+                -hours);
 
         var hosts =
             _db.HostSnapshots
@@ -399,9 +505,40 @@ public sealed class DashboardController
                     x => x.AlertRule.Severity)
                 .Select(x => new
                 {
-                    Severity = x.Key,
-                    Count = x.Count()
+                    Severity =
+                        x.Key,
+
+                    Count =
+                        x.Count()
                 })
+                .ToListAsync();
+
+        var topProblemServers =
+            await _db.AlertEvents
+                .Where(x =>
+                    x.Status !=
+                    AlertStatus.Closed)
+                .GroupBy(x =>
+                    new
+                    {
+                        x.ServerId,
+                        x.Server!.ServerName
+                    })
+                .Select(g =>
+                    new TopProblemServerResponse
+                    {
+                        ServerId =
+                            g.Key.ServerId,
+
+                        ServerName =
+                            g.Key.ServerName,
+
+                        OpenAlertCount =
+                            g.Count()
+                    })
+                .OrderByDescending(
+                    x => x.OpenAlertCount)
+                .Take(5)
                 .ToListAsync();
 
         var response =
@@ -458,21 +595,63 @@ public sealed class DashboardController
 
                 HealthyServers =
                     await _db.Servers.CountAsync(
-                        x => x.Status == "Healthy"),
+                        x =>
+                            x.Status ==
+                            ServerStatus.Healthy),
 
                 WarningServers =
                     await _db.Servers.CountAsync(
-                        x => x.Status == "Warning"),
+                        x =>
+                            x.Status ==
+                            ServerStatus.Warning),
 
                 CriticalServers =
                     await _db.Servers.CountAsync(
-                        x => x.Status == "Critical"),
+                        x =>
+                            x.Status ==
+                            ServerStatus.Critical),
 
                 OfflineServers =
                     await _db.Servers.CountAsync(
-                        x => x.Status == "Offline")
+                        x =>
+                            x.Status ==
+                            ServerStatus.Offline),
+
+                OpenAlerts =
+                    await _db.AlertEvents
+                        .CountAsync(
+                            x =>
+                                x.Status !=
+                                AlertStatus.Closed),
+
+                CriticalAlerts =
+                    await _db.AlertEvents
+                        .CountAsync(
+                            x =>
+                                x.Status !=
+                                AlertStatus.Closed &&
+                                x.AlertRule!.Severity ==
+                                AlertSeverity.Critical),
+
+                RunningWorkers =
+                    await _db.EngineServices
+                        .CountAsync(
+                            x =>
+                                x.Status ==
+                                "Running"),
+
+                StoppedWorkers =
+                    await _db.EngineServices
+                        .CountAsync(
+                            x =>
+                                x.Status !=
+                                "Running"),
+
+                TopProblemServers =
+                    topProblemServers
             };
 
-        return Ok(response);
+        return Ok(
+            response);
     }
 }

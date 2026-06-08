@@ -1,55 +1,118 @@
-﻿
+﻿// ============================================================================
+// Project: MonitoringAgent.Agent
+// File: AgentSettings.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Defines configuration settings used by the monitoring agent.
+//
+//      These settings control API connectivity, authentication, snapshot
+//      collection behavior, monitored resources, Ignition integration,
+//      and network communication parameters.
+// ============================================================================
 
 namespace MonitoringAgent.Agent.Configuration;
 
 /// <summary>
-/// Configuration settings used by the monitoring agent.
+/// Defines configuration settings used by the monitoring agent.
 /// </summary>
 public sealed class AgentSettings
 {
-    /// <summary>
-    /// Base URL of the monitoring API.
-    /// </summary>
-    public string CollectorUrl { get; set; } = string.Empty;
+    // =====================================================================
+    // API Configuration
+    // =====================================================================
 
     /// <summary>
-    /// API key used for agent authentication.
+    /// URL of the monitoring API used to receive health snapshots.
     /// </summary>
-    public string ApiKey { get; set; } = string.Empty;
+    public string CollectorUrl
+    {
+        get;
+        set;
+    } = string.Empty;
 
     /// <summary>
-    /// Frequency, in seconds, that health snapshots are collected.
+    /// API key used to authenticate the monitoring agent.
     /// </summary>
-    public int PollIntervalSeconds { get; set; } = 60;
-
-    /// <summary>
-    /// Name of the Ignition Windows service.
-    /// </summary>
-    public string IgnitionServiceName { get; set; } = "Ignition";
-
-    /// <summary>
-    /// URL used to verify gateway availability.
-    /// </summary>
-    public string GatewayUrl { get; set; } = "http://localhost:8088";
+    public string ApiKey
+    {
+        get;
+        set;
+    } = string.Empty;
 
     /// <summary>
     /// Timeout, in seconds, for outbound HTTP requests.
     /// </summary>
-    public int HttpTimeoutSeconds { get; set; } = 10;
+    public int HttpTimeoutSeconds
+    {
+        get;
+        set;
+    } = 10;
+
+    // =====================================================================
+    // Snapshot Collection
+    // =====================================================================
 
     /// <summary>
-    /// Drive to monitor for storage metrics.
+    /// Frequency, in seconds, that health snapshots are collected.
     /// </summary>
-    public string MonitoredDrive { get; set; } = "C:";
+    public int PollIntervalSeconds
+    {
+        get;
+        set;
+    } = 60;
+
+    // =====================================================================
+    // Ignition Configuration
+    // =====================================================================
 
     /// <summary>
-    /// Network adapter to monitor.
+    /// Name of the Ignition Windows service.
     /// </summary>
-    public string NetworkInterfaceName { get; set; } = string.Empty;
-    
+    public string IgnitionServiceName
+    {
+        get;
+        set;
+    } = "Ignition";
+
     /// <summary>
-    /// Ignition install path.
+    /// Ignition installation directory.
     /// </summary>
-    public string IgnitionInstallPath { get; set; }
-        = @"C:\Program Files\Inductive Automation\Ignition";
+    public string IgnitionInstallPath
+    {
+        get;
+        set;
+    } = @"C:\Program Files\Inductive Automation\Ignition";
+
+    /// <summary>
+    /// URL used to verify Ignition gateway availability.
+    /// </summary>
+    public string GatewayUrl
+    {
+        get;
+        set;
+    } = "http://localhost:8088";
+
+    // =====================================================================
+    // Host Monitoring
+    // =====================================================================
+
+    /// <summary>
+    /// Drive monitored for storage metrics.
+    /// </summary>
+    public string MonitoredDrive
+    {
+        get;
+        set;
+    } = "C:";
+
+    /// <summary>
+    /// Network adapter monitored for network metrics.
+    /// </summary>
+    public string NetworkInterfaceName
+    {
+        get;
+        set;
+    } = string.Empty;
 }

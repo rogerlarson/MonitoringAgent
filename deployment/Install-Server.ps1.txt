@@ -1,0 +1,105 @@
+Import-Module WebAdministration
+
+$root =
+    "C:\MonitoringAgent"
+
+$apiSiteName =
+    "MonitoringAgentApi"
+
+$webSiteName =
+    "MonitoringAgentWeb"
+
+$apiAppPool =
+    "MonitoringAgentApiPool"
+
+$webAppPool =
+    "MonitoringAgentWebPool"
+
+Write-Host ""
+Write-Host "Creating folders..."
+Write-Host ""
+
+New-Item `
+    -ItemType Directory `
+    -Path "$root\Api" `
+    -Force | Out-Null
+
+New-Item `
+    -ItemType Directory `
+    -Path "$root\Web" `
+    -Force | Out-Null
+
+New-Item `
+    -ItemType Directory `
+    -Path "$root\Engine" `
+    -Force | Out-Null
+
+Write-Host ""
+Write-Host "Creating IIS Application Pools..."
+Write-Host ""
+
+if (-not (Test-Path IIS:\AppPools\$apiAppPool))
+{
+    New-WebAppPool `
+        -Name $apiAppPool
+}
+
+if (-not (Test-Path IIS:\AppPools\$webAppPool))
+{
+    New-WebAppPool `
+        -Name $webAppPool
+}
+
+Set-ItemProperty `
+    IIS:\AppPools\$apiAppPool `
+    -Name managedRuntimeVersion `
+    -Value ""
+
+Set-ItemProperty `
+    IIS:\AppPools\$webAppPool `
+    -Name managedRuntimeVersion `
+    -Value ""
+
+Write-Host ""
+Write-Host "Creating API Site..."
+Write-Host ""
+
+if (-not (Get-Website |
+    Where-Object Name -eq $apiSiteName))
+{
+    New-Website `
+        -Name $apiSiteName `
+        -PhysicalPath "$root\Api" `
+        -Port 5001 `
+        -ApplicationPool $apiAppPool
+}
+
+Write-Host ""
+Write-Host "Creating Web Site..."
+Write-Host ""
+
+if (-not (Get-Website |
+    Where-Object Name -eq $webSiteName))
+{
+    New-Website `
+        -Name $webSiteName `
+        -PhysicalPath "$root\Web" `
+        -Port 80 `
+        -ApplicationPool $webAppPool
+}
+
+Write-Host ""
+Write-Host "Installing Engine Service..."
+Write-Host ""
+
+if (-not (Get-Service `
+    MonitoringAgentEngine `
+    -ErrorAction SilentlyContinue))
+{
+    sc.exe create `
+        MonitoringAgentEngine `
+        binPath= "$root\Engine\MonitoringAgent.Engine.exe"
+}
+
+Write-Host ""
+Write-Host "Server installation complete."

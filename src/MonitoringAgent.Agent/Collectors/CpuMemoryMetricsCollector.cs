@@ -1,11 +1,15 @@
 ﻿// ============================================================================
-// Project : MonitoringAgent.Agent
-// File    : CpuMemoryMetricsCollector.cs
+// Project: MonitoringAgent.Agent
+// File: CpuMemoryMetricsCollector.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Collects CPU and memory metrics from the local machine.
 //
-// Purpose
-// -------
-// Collects CPU and memory metrics from the local machine.
-//
+//      Uses Windows performance counters and WMI to gather processor,
+//      memory, paging, and context switching statistics for inclusion in
+//      health snapshots.
 // ============================================================================
 
 using System.Diagnostics;
@@ -16,14 +20,23 @@ using MonitoringAgent.Common.Models;
 namespace MonitoringAgent.Agent.Collectors;
 
 /// <summary>
-/// Collects CPU and memory metrics.
+/// Collects CPU and memory metrics from the local machine.
 /// </summary>
-public sealed class CpuMemoryMetricsCollector : IDisposable
+public sealed class CpuMemoryMetricsCollector
+    : IDisposable
 {
+    // =====================================================================
+    // Performance Counters
+    // =====================================================================
+
     private readonly PerformanceCounter _cpuCounter;
     private readonly PerformanceCounter _availableMemoryCounter;
     private readonly PerformanceCounter _pageFaultCounter;
     private readonly PerformanceCounter _contextSwitchCounter;
+
+    // =====================================================================
+    // Constructor
+    // =====================================================================
 
     /// <summary>
     /// Initializes a new instance of the collector.
@@ -46,9 +59,8 @@ public sealed class CpuMemoryMetricsCollector : IDisposable
             WindowsPerformanceCounterFactory
                 .CreateContextSwitchCounter();
 
-        // Prime performance counters.
-        // Many Windows counters require an initial sample
-        // before returning meaningful values.
+        // Prime performance counters. Many Windows counters require an
+        // initial sample before returning meaningful values.
 
         _cpuCounter.NextValue();
 
@@ -59,9 +71,22 @@ public sealed class CpuMemoryMetricsCollector : IDisposable
         _contextSwitchCounter.NextValue();
     }
 
+    // =====================================================================
+    // Metric Collection
+    // =====================================================================
+
     /// <summary>
-    /// Populates CPU and memory metrics.
+    /// Populates CPU and memory metrics on the supplied snapshot.
     /// </summary>
+    /// <param name="snapshot">
+    /// Snapshot being populated.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
+    /// <returns>
+    /// Completed task.
+    /// </returns>
     public Task PopulateAsync(
         HealthSnapshot snapshot,
         CancellationToken cancellationToken)
@@ -120,9 +145,16 @@ public sealed class CpuMemoryMetricsCollector : IDisposable
         return Task.CompletedTask;
     }
 
+    // =====================================================================
+    // Memory Information
+    // =====================================================================
+
     /// <summary>
-    /// Returns total physical memory in MB.
+    /// Retrieves total installed physical memory in megabytes.
     /// </summary>
+    /// <returns>
+    /// Total physical memory in MB.
+    /// </returns>
     private static long GetTotalMemoryMb()
     {
         using var searcher =
@@ -140,8 +172,12 @@ public sealed class CpuMemoryMetricsCollector : IDisposable
         return 0;
     }
 
-/// <inheritdoc />
-public void Dispose()
+    // =====================================================================
+    // Cleanup
+    // =====================================================================
+
+    /// <inheritdoc />
+    public void Dispose()
     {
         _cpuCounter.Dispose();
         _availableMemoryCounter.Dispose();

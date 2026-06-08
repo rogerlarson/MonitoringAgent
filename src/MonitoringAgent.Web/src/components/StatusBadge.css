@@ -24,3 +24,23 @@
     background-color: #374151;
     color: #d1d5db;
 }
+
+.status-badge.open {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+.status-badge.acknowledged {
+    background-color: #78350f;
+    color: #fcd34d;
+}
+
+.status-badge.suppressed {
+    background-color: #14532d;
+    color: #86efac;
+}
+
+.status-badge.closed {
+    background-color: #374151;
+    color: #d1d5db;
+}

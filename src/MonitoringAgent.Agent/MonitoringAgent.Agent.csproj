@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-MonitoringAgent-9fc02e70-a43f-45b0-91ed-5a0a37cc4b5d</UserSecretsId>
@@ -20,5 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MonitoringAgent.Common\MonitoringAgent.Common.csproj" />
+    <ProjectReference Include="..\MonitoringAgent.Data\MonitoringAgent.Data.csproj" />
   </ItemGroup>
 </Project>

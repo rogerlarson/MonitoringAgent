@@ -1,0 +1,25 @@
+.app-button {
+    background: #2563eb;
+    color: white;
+
+    border: none;
+    border-radius: 6px;
+
+    padding: 8px 14px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    transition: background 0.15s ease;
+}
+
+.app-button:hover {
+    background: #1d4ed8;
+}
+
+.app-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,4 +1,17 @@
-﻿using System.Diagnostics;
+﻿// ============================================================================
+// Project: MonitoringAgent.Agent
+// File: SystemMetricsCollector.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Collects operating system metrics from the local machine.
+//
+//      System metrics include process count and system uptime information
+//      used for monitoring, alerting, and health reporting.
+// ============================================================================
+
+using System.Diagnostics;
 using MonitoringAgent.Common.Models;
 
 namespace MonitoringAgent.Agent.Collectors;
@@ -8,15 +21,22 @@ namespace MonitoringAgent.Agent.Collectors;
 /// </summary>
 public sealed class SystemMetricsCollector
 {
+    // =====================================================================
+    // Metric Collection
+    // =====================================================================
+
     /// <summary>
-    /// Populates system metrics on the supplied snapshot.
+    /// Populates operating system metrics on the supplied snapshot.
     /// </summary>
     /// <param name="snapshot">
-    /// Snapshot to populate.
+    /// Snapshot being populated.
     /// </param>
     /// <param name="cancellationToken">
     /// Cancellation token.
     /// </param>
+    /// <returns>
+    /// Completed task.
+    /// </returns>
     public Task PopulateAsync(
         HealthSnapshot snapshot,
         CancellationToken cancellationToken)
@@ -30,11 +50,15 @@ public sealed class SystemMetricsCollector
         return Task.CompletedTask;
     }
 
+    // =====================================================================
+    // System Information Helpers
+    // =====================================================================
+
     /// <summary>
     /// Returns the current system uptime in minutes.
     /// </summary>
     /// <returns>
-    /// Total uptime in minutes.
+    /// Total system uptime in minutes.
     /// </returns>
     private static long GetSystemUptimeMinutes()
     {

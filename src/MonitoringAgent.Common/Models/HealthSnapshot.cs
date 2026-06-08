@@ -3,10 +3,18 @@
 // File: HealthSnapshot.cs
 // Author: Roger Larson
 // Date Created: 05/29/2026
-// Date Updated: 05/29/2026
+// Date Updated: 06/07/2026
 // Description:
 //      Represents a point-in-time health snapshot collected from a monitored
 //      server and transmitted to the central monitoring API.
+//
+//      Captures operating system, hardware, network, storage, security,
+//      gateway, and Ignition-specific metrics used for monitoring,
+//      alerting, reporting, and historical analysis.
+//
+//      A new snapshot is typically collected on a scheduled interval by the
+//      monitoring agent and submitted to the monitoring API for storage and
+//      evaluation.
 // ============================================================================
 
 namespace MonitoringAgent.Common.Models;
@@ -39,12 +47,12 @@ public sealed class HealthSnapshot
     /// <summary>
     /// Monitoring agent version.
     /// </summary>
-    public string AgentVersion { get; set; }
+    public string AgentVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// Windows domain name.
     /// </summary>
-    public string DomainName { get; set; }
+    public string DomainName { get; set; } = string.Empty;
 
     // =====================================================================
     // System
@@ -90,17 +98,17 @@ public sealed class HealthSnapshot
     // =====================================================================
 
     /// <summary>
-    /// System hard drive to monitor.
+    /// System drive being monitored.
     /// </summary>
     public string SystemDrive { get; set; } = string.Empty;
 
     /// <summary>
-    /// Percent disk utilization.
+    /// Percentage of disk space currently used.
     /// </summary>
     public decimal DiskPercentUsed { get; set; }
 
     /// <summary>
-    /// Free disk space in gigabytes.
+    /// Available disk space in gigabytes.
     /// </summary>
     public decimal DiskFreeGb { get; set; }
 
@@ -128,9 +136,9 @@ public sealed class HealthSnapshot
     /// Current disk queue length.
     /// </summary>
     public decimal DiskQueueLength { get; set; }
-    
+
     /// <summary>
-    /// Current avg disk queue length for smoothing spikes.
+    /// Rolling average disk queue length.
     /// </summary>
     public decimal AvgDiskQueueLength { get; set; }
 
@@ -196,9 +204,9 @@ public sealed class HealthSnapshot
     /// Ignition version.
     /// </summary>
     public string IgnitionVersion { get; set; } = string.Empty;
-    
+
     /// <summary>
-    /// Ignition Java process version.
+    /// JVM version used by the Ignition process.
     /// </summary>
     public string JavaVersion { get; set; } = string.Empty;
 
@@ -231,9 +239,9 @@ public sealed class HealthSnapshot
     /// Ignition process ID (PID).
     /// </summary>
     public int IgnitionProcessId { get; set; }
-    
+
     /// <summary>
-    /// Ignition Process name (java or javaw).
+    /// Ignition process executable name (java or javaw).
     /// </summary>
     public string IgnitionProcessName { get; set; } = string.Empty;
 
@@ -247,7 +255,7 @@ public sealed class HealthSnapshot
     public bool GatewayReachable { get; set; }
 
     /// <summary>
-    /// Gateway HTTP response code.
+    /// HTTP status code returned by the gateway.
     /// </summary>
     public int GatewayHttpStatusCode { get; set; }
 
@@ -261,17 +269,17 @@ public sealed class HealthSnapshot
     // =====================================================================
 
     /// <summary>
-    /// Failed login attempts during the last hour.
+    /// Failed login attempts detected during the previous hour.
     /// </summary>
     public int FailedLoginsLastHour { get; set; }
 
     /// <summary>
-    /// Privilege escalation events during the last hour.
+    /// Privilege escalation events detected during the previous hour.
     /// </summary>
     public int PrivilegeEscalationsLastHour { get; set; }
 
     /// <summary>
-    /// Critical Windows event log entries during the last hour.
+    /// Critical Windows event log entries detected during the previous hour.
     /// </summary>
     public int CriticalEventLogEntriesLastHour { get; set; }
 
@@ -282,14 +290,12 @@ public sealed class HealthSnapshot
     /// <summary>
     /// Operating system name.
     /// </summary>
-    public string OperatingSystem { get; set; }
-        = string.Empty;
+    public string OperatingSystem { get; set; } = string.Empty;
 
     /// <summary>
     /// Operating system version.
     /// </summary>
-    public string OperatingSystemVersion { get; set; }
-        = string.Empty;
+    public string OperatingSystemVersion { get; set; } = string.Empty;
 
     /// <summary>
     /// Number of logical processors.
@@ -297,7 +303,7 @@ public sealed class HealthSnapshot
     public int ProcessorCount { get; set; }
 
     /// <summary>
-    /// Total installed memory in MB.
+    /// Total installed memory in megabytes.
     /// </summary>
     public long TotalMemoryMb { get; set; }
 }

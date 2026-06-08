@@ -1,4 +1,19 @@
-﻿using System.Diagnostics;
+﻿// ============================================================================
+// Project: MonitoringAgent.Agent
+// File: NetworkMetricsCollector.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/07/2026
+// Description:
+//      Collects network utilization and network health metrics from the
+//      configured network interface.
+//
+//      Uses Windows performance counters and network interface statistics
+//      to gather throughput, error, discard, and retransmission metrics
+//      for inclusion in health snapshots.
+// ============================================================================
+
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Options;
 using MonitoringAgent.Agent.Configuration;
@@ -8,22 +23,43 @@ using MonitoringAgent.Common.Models;
 namespace MonitoringAgent.Agent.Collectors;
 
 /// <summary>
-/// Collects network metrics.
+/// Collects network utilization and network health metrics.
 /// </summary>
 public sealed class NetworkMetricsCollector
     : IDisposable
 {
+    // =====================================================================
+    // Dependencies
+    // =====================================================================
+
+    private readonly AgentSettings _settings;
+
+    // =====================================================================
+    // Network Resources
+    // =====================================================================
+
     private readonly NetworkInterface? _networkInterface;
+
     private readonly PerformanceCounter _bytesReceivedCounter;
     private readonly PerformanceCounter _bytesSentCounter;
     private readonly PerformanceCounter _tcpRetransCounter;
-    private readonly AgentSettings _settings;
 
+    // =====================================================================
+    // Constructor
+    // =====================================================================
+
+    /// <summary>
+    /// Initializes a new instance of the collector.
+    /// </summary>
+    /// <param name="settings">
+    /// Agent configuration settings.
+    /// </param>
     public NetworkMetricsCollector(
         IOptions<AgentSettings> settings)
     {
-        _settings = settings.Value;
-        
+        _settings =
+            settings.Value;
+
         _networkInterface =
             NetworkInterface
                 .GetAllNetworkInterfaces()
@@ -33,7 +69,7 @@ public sealed class NetworkMetricsCollector
                     ||
                     x.Name ==
                     _settings.NetworkInterfaceName);
-        
+
         _bytesReceivedCounter =
             new PerformanceCounter(
                 "Network Interface",
@@ -50,11 +86,32 @@ public sealed class NetworkMetricsCollector
             WindowsPerformanceCounterFactory
                 .CreateTcpRetransmissionsCounter();
 
+        // Prime performance counters. Many Windows counters require an
+        // initial sample before returning meaningful values.
+
         _bytesReceivedCounter.NextValue();
+
         _bytesSentCounter.NextValue();
+
         _tcpRetransCounter.NextValue();
     }
 
+    // =====================================================================
+    // Metric Collection
+    // =====================================================================
+
+    /// <summary>
+    /// Populates network metrics on the supplied snapshot.
+    /// </summary>
+    /// <param name="snapshot">
+    /// Snapshot being populated.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
+    /// <returns>
+    /// Completed task.
+    /// </returns>
     public Task PopulateAsync(
         HealthSnapshot snapshot,
         CancellationToken cancellationToken)
@@ -85,8 +142,8 @@ public sealed class NetworkMetricsCollector
                     _settings.NetworkInterfaceName);
 
         snapshot.PrimaryNetworkInterface =
-            nic?.Description ??
-            _settings.NetworkInterfaceName;
+            nic?.Description
+            ?? _settings.NetworkInterfaceName;
 
         if (_networkInterface != null)
         {
@@ -110,6 +167,11 @@ public sealed class NetworkMetricsCollector
         return Task.CompletedTask;
     }
 
+    // =====================================================================
+    // Cleanup
+    // =====================================================================
+
+    /// <inheritdoc />
     public void Dispose()
     {
         _bytesReceivedCounter.Dispose();
