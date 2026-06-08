@@ -42,8 +42,8 @@ and a shared SQL Server database.
      │                 │
      ▼                 ▼
 ┌──────────────┐ ┌────────────────┐
-│ Engine             │ │ Web Dashboard       │
-│ (IIS)              │ │ (IIS)               │
+│ Engine       │ │ Web Dashboard  │
+│ (IIS)        │ │ (IIS)          │
 └──────────────┘ └────────────────┘
 ```
 
