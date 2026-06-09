@@ -1,125 +1,216 @@
 # Roadmap
 
-Future enhancements under consideration.
+Future enhancements planned for MonitoringAgent.
 
 ---
 
+# Version 0.9.0
+
+Focus: Platform Administration & Alert Management
+
+## Authentication
+
+* User authentication
+* Local user accounts
+* Role-based access control (RBAC)
+* Permission management
+
 ## Alerting
 
-### Planned
+* Alert comments
+* Alert ownership
+* Alert assignment
+* Alert history tracking
+
+## Dashboard
+
+* Server tagging
+* Dashboard filters
+* Saved views
+* Administrative settings pages
+
+---
+
+# Version 1.0.0
+
+Focus: Production Readiness
+
+## Platform
+
+* Installation package
+* Documentation completion
+* Dashboard polish
+* Production deployment validation
+
+## Agent
+
+* Agent auto-upgrade framework
+* Agent version reporting dashboard
+* Agent health monitoring
+
+## Operations
+
+* Backup procedures
+* Upgrade procedures
+* Deployment automation scripts
+
+---
+
+# Alerting
+
+## Planned
 
 * SMS notifications
 * Microsoft Teams notifications
 * Slack notifications
 * Webhook notifications
 
-### Desired
+## Future
 
 * Alert escalation chains
 * Alert correlation
 * Alert grouping
 * Alert deduplication
 * Maintenance windows
+* Scheduled alert suppression
 
 ---
 
-## Dashboard
+# Dashboard
 
-### Planned
+## Planned
 
 * Custom dashboards
 * Saved views
 * Dashboard filters
 * Server tagging
 
-### Desired
+## Future
 
 * NOC display mode
-* Dark mode improvements
 * Dashboard exports
 * PDF reports
+* Executive reporting
+* Dashboard themes
 
 ---
 
-## Agent
+# Agent
 
-### Planned
+## Planned
 
 * Auto-update support
-* Agent self-health monitoring
-* Agent registration workflow
+* Self-health monitoring
+* Registration workflow
+* Offline snapshot queue
+* Connectivity diagnostics
+* Configuration validation
 
-### Desired
+## Future
 
 * Linux support
 * Docker support
 * Kubernetes support
+* Centralized agent management
 
 ---
 
-## Monitoring
+# Monitoring
 
-### Planned
+## Planned
 
 * Windows Service monitoring
 * SQL Server monitoring
 * IIS monitoring
 
-### Desired
+## Future
 
 * OPC-UA monitoring
 * MQTT monitoring
 * RabbitMQ monitoring
 * Kafka monitoring
+* Certificate expiration monitoring
+* Windows Event Log monitoring
 
 ---
 
-## Ignition
+# Ignition
 
-### Planned
+## Planned
 
 * Gateway API integration
 * Tag count monitoring
 * Store-and-forward monitoring
 * Gateway backup monitoring
 
-### Desired
+## Future
 
 * Gateway network monitoring
 * Redundancy monitoring
 * Module health monitoring
+* Alarm subsystem monitoring
+* Historical tag performance monitoring
 
 ---
 
-## Platform
+# Platform
 
-### Planned
+## Planned
 
-* User authentication
-* RBAC security
 * Audit logging
 * Configuration UI
+* User management
+* System settings management
 
-### Desired
+## Future
 
 * Multi-tenant support
 * High availability
-* Distributed collectors
+* Distributed engine workers
 * Cross-site monitoring
+* Multi-server dashboard aggregation
 
 ---
 
-## Reporting
+# Reporting
 
-### Planned
+## Planned
 
 * Daily reports
 * Weekly reports
 * Monthly reports
 
-### Desired
+## Future
 
 * Capacity planning
 * Forecasting
 * Trend prediction
 * SLA reporting
+* Availability reporting
+* Compliance reporting
+
+---
+
+# Long-Term Vision
+
+## Enterprise Features
+
+* Agent fleet management
+* Agent deployment automation
+* Configuration templates
+* Centralized policy management
+
+## Integrations
+
+* Active Directory integration
+* Microsoft Entra ID integration
+* ServiceNow integration
+* PagerDuty integration
+* Grafana integration
+
+## Analytics
+
+* Predictive alerting
+* Baseline learning
+* Anomaly detection
+* Capacity forecasting

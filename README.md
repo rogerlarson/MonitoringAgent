@@ -1,254 +1,447 @@
 # MonitoringAgent
 
-MonitoringAgent is a lightweight server and application monitoring platform built with .NET.
+A distributed monitoring platform for Windows infrastructure, Ignition Gateways, and industrial application environments.
 
-The platform consists of:
-
-* Monitoring Agent (Windows Service)
-* Monitoring API (ASP.NET Core)
-* Monitoring Engine Workers
-* Monitoring Database (SQL Server / EF Core)
-* Monitoring Web Dashboard (React)
-
-The system collects infrastructure metrics, application metrics, gateway availability, and service health information from monitored servers and stores historical snapshots for analysis and alerting.
+MonitoringAgent provides agent-based metric collection, centralized data ingestion, historical storage, alerting, background processing, and a modern web dashboard for operational visibility.
 
 ---
 
-## Features
+# Platform Components
 
-### Host Monitoring
+The platform consists of six primary projects:
 
-Collects:
-
-* CPU utilization
-* Memory utilization
-* Available memory
-* Process counts
-* System uptime
-* Context switches
-* Page faults
-
-### Disk Monitoring
-
-Collects:
-
-* Disk utilization
-* Free disk space
-* Read operations/sec
-* Write operations/sec
-* Read latency
-* Write latency
-* Disk queue length
-* Average disk queue length
-
-### Network Monitoring
-
-Collects:
-
-* Bytes received/sec
-* Bytes sent/sec
-* Receive errors
-* Send errors
-* Receive discards
-* Send discards
-* TCP retransmissions
-
-### Ignition Monitoring
-
-Collects:
-
-* Ignition service state
-* JVM process state
-* CPU usage
-* Memory usage
-* Thread count
-* Handle count
-* Process uptime
-* Ignition version
-* Java version
-
-### Gateway Monitoring
-
-Collects:
-
-* Reachability
-* HTTP status code
-* Response time
-
-### Alerting
-
-Supports:
-
-* Warning alerts
-* Critical alerts
-* Sustained conditions
-* Repeat notifications
-* Alert acknowledgement
-* Alert suppression
-* Manual alert closure
-* Email notifications
-
-### Historical Metrics
-
-Stores historical snapshots for:
-
-* Hosts
-* Ignition services
-* Gateways
-
-Enables:
-
-* Trend analysis
-* Dashboard charts
-* Historical reporting
+| Project | Purpose |
+|----------|----------|
+| MonitoringAgent.Agent | Data collection agent installed on monitored servers |
+| MonitoringAgent.Api | Central ingestion and query API |
+| MonitoringAgent.Engine | Background processing and alert evaluation service |
+| MonitoringAgent.Web | React dashboard application |
+| MonitoringAgent.Data | Entity Framework Core persistence layer |
+| MonitoringAgent.Common | Shared models, services, interfaces, and configuration |
 
 ---
 
-## Architecture
+# Current Release
 
-Agent
+```text
+Version: 0.8.0
+Status : Active Development
+```
 
-Server
-→ Health Snapshot
-→ API
+Current capabilities include:
 
-API
-
-Receives snapshots
-→ Persists data
-→ Evaluates alerts
-
-Engine Workers
-
-Background services responsible for:
-
-* Alert processing
-* Health calculations
-* Cleanup tasks
-* Maintenance operations
-
-Database
-
-Stores:
-
-* Servers
-* Services
-* Snapshots
-* Alerts
-* Engine status
-
-Web Dashboard
-
-Displays:
-
-* Server inventory
-* Health status
-* Active alerts
-* Historical metrics
-* Service monitoring
+- Host monitoring
+- Disk monitoring
+- Network monitoring
+- Gateway monitoring
+- Ignition monitoring
+- Historical metrics
+- Alert processing
+- Email notifications
+- Dashboard APIs
+- Service monitoring
+- Engine worker tracking
+- Daily log management
 
 ---
 
-## Solution Structure
+# Core Features
 
+## Host Monitoring
+
+Collects:
+
+- CPU utilization
+- Memory utilization
+- Available memory
+- Process counts
+- System uptime
+- Context switches
+- Page faults
+
+## Disk Monitoring
+
+Collects:
+
+- Disk utilization
+- Free disk space
+- Read operations/sec
+- Write operations/sec
+- Read latency
+- Write latency
+- Disk queue length
+- Average disk queue length
+
+## Network Monitoring
+
+Collects:
+
+- Bytes received/sec
+- Bytes sent/sec
+- Receive errors
+- Send errors
+- Receive discards
+- Send discards
+- TCP retransmissions
+
+## Ignition Monitoring
+
+Collects:
+
+- Service state
+- Process state
+- CPU utilization
+- Memory utilization
+- Thread count
+- Handle count
+- Process uptime
+- Ignition version
+- Java version
+
+## Gateway Monitoring
+
+Collects:
+
+- Reachability
+- HTTP status code
+- Response time
+- Availability status
+
+---
+
+# Alerting
+
+MonitoringAgent supports:
+
+- Warning alerts
+- Critical alerts
+- Sustained conditions
+- Alert acknowledgements
+- Alert suppression
+- Alert closure
+- Email notifications
+- Repeat notifications
+
+Alert lifecycle:
+
+```text
+Open
+ |
+ +--> Acknowledged
+ |
+ +--> Suppressed
+ |
+ +--> Closed
+```
+
+---
+
+# Historical Data
+
+Historical snapshots are stored for:
+
+- Hosts
+- Gateways
+- Ignition Services
+
+Used for:
+
+- Trend analysis
+- Dashboard charts
+- Capacity planning
+- Incident investigation
+- Historical reporting
+
+---
+
+# Architecture
+
+```text
+Monitored Server
+       |
+       v
 MonitoringAgent.Agent
-
-Windows monitoring agent responsible for collecting and publishing metrics.
-
+       |
+       | HTTPS
+       v
 MonitoringAgent.Api
-
-REST API used by agents, dashboard, and background services.
-
-MonitoringAgent.Common
-
-Shared models, interfaces, configuration objects, enums, and services.
-
-MonitoringAgent.Data
-
-Entity Framework Core persistence layer.
-
-MonitoringAgent.Engine
-
-Background processing and maintenance workers.
-
-MonitoringAgent.Web
-
-React dashboard application.
+       |
+       v
+SQL Server
+       |
+       +------------------+
+       |                  |
+       v                  v
+MonitoringAgent.Engine    MonitoringAgent.Web
+```
 
 ---
 
-## Configuration
+# Agent
 
-### Agent
+Runs as:
 
-AgentSettings
+```text
+Windows Service
+```
 
-* CollectorUrl
-* ApiKey
-* PollIntervalSeconds
-* IgnitionServiceName
-* GatewayUrl
-* HttpTimeoutSeconds
-* MonitoredDrive
-* NetworkInterfaceName
-* IgnitionInstallPath
+Responsibilities:
 
-### API
-
-ApiSettings
-
-* RequireApiKey
-* ApiKey
-
-### Email
-
-EmailSettings
-
-* Host
-* Port
-* UserName
-* Password
-* FromAddress
-* ToAddress
-* EnableSsl
-
-### Logging
-
-LogSettings
-
-* LogDirectory
-* RetentionDays
-* EnableApiLogging
-* EnableHeartbeatLogging
-* EnableAlertLogging
-* EnableEmailLogging
-* EnableMaintenanceLogging
+- Collect metrics
+- Create HealthSnapshot payloads
+- Publish snapshots
+- Track agent version
+- Record operational logs
+- Manage local log retention
 
 ---
 
-## Security
+# API
 
-Agent communication can be secured using API keys.
+Runs as:
 
-Agents include:
+```text
+ASP.NET Core Application
+```
 
+Responsibilities:
+
+- Receive snapshots
+- Validate API keys
+- Register servers
+- Persist metrics
+- Expose dashboard APIs
+- Expose alert APIs
+
+---
+
+# Engine
+
+Runs as:
+
+```text
+Windows Service
+```
+
+Responsibilities:
+
+- Alert processing
+- Host offline detection
+- Snapshot cleanup
+- Log cleanup
+- Email notifications
+- Scheduled maintenance
+
+Current workers:
+
+- EngineLifecycleService
+- LogCleanupWorker
+- HostOfflineMonitorWorker
+- SnapshotAlertWorker
+- SnapshotCleanupWorker
+
+---
+
+# Dashboard
+
+Built with:
+
+```text
+React
+```
+
+Provides:
+
+- Dashboard views
+- Server inventory
+- Active alerts
+- Historical metrics
+- Service monitoring
+- Administrative functions
+
+---
+
+# Database
+
+Primary entities:
+
+```text
+Servers
+HostSnapshots
+GatewaySnapshots
+IgnitionSnapshots
+Services
+ServerServices
+AlertRules
+AlertEvents
+EngineServices
+```
+
+---
+
+# Logging
+
+Each application maintains independent daily log files.
+
+```text
+Api/Logs
+Engine/Logs
+Agent/Logs
+```
+
+Format:
+
+```text
+log-YYYY-MM-DD.log
+```
+
+Categories include:
+
+```text
+API
+ALERT
+EMAIL
+HEARTBEAT
+ENGINE
+AGENT
+SYSTEM
+```
+
+Automatic log cleanup is supported through configurable retention settings.
+
+---
+
+# Security
+
+Current security controls:
+
+- HTTPS
+- API Key Authentication
+- SQL Server Authentication
+- IIS Security Controls
+
+Agent requests include:
+
+```text
 X-API-Key
+```
 
-with every snapshot request.
-
-The API validates requests before accepting health data.
+when API key validation is enabled.
 
 ---
 
-## Status
+# Configuration
 
-Current project status:
+## AgentSettings
 
-Active Development
+```text
+CollectorUrl
+ApiKey
+PollIntervalSeconds
+HttpTimeoutSeconds
+GatewayUrl
+IgnitionServiceName
+IgnitionInstallPath
+MonitoredDrive
+NetworkInterfaceName
+```
 
-Primary focus areas:
+## ApiSettings
 
-* Monitoring reliability
-* Alert engine improvements
-* Dashboard enhancements
-* Service extensibility
+```text
+RequireApiKey
+ApiKey
+```
+
+## EmailSettings
+
+```text
+Host
+Port
+UserName
+Password
+FromAddress
+ToAddress
+EnableSsl
+```
+
+## LogSettings
+
+```text
+LogDirectory
+RetentionDays
+EnableApiLogging
+EnableHeartbeatLogging
+EnableAlertLogging
+EnableEmailLogging
+EnableMaintenanceLogging
+```
+
+---
+
+# Documentation
+
+Project documentation:
+
+```text
+README.md
+ARCHITECTURE.md
+INSTALLATION.md
+DEPLOYMENT.md
+DEPLOYMENT-CHECKLIST.md
+CHANGELOG.md
+```
+
+---
+
+# Roadmap
+
+## Version 0.9.0
+
+- Authentication
+- User accounts
+- Roles and permissions
+- Alert comments
+- Alert ownership
+
+## Version 1.0.0
+
+- Production release
+- Documentation completion
+- Dashboard polishing
+- Installation package
+- Agent auto-upgrade support
+
+---
+
+# Technology Stack
+
+Backend:
+
+```text
+.NET 8
+ASP.NET Core
+Entity Framework Core
+SQL Server
+```
+
+Frontend:
+
+```text
+React
+Vite
+```
+
+Infrastructure:
+
+```text
+Windows Services
+IIS
+SMTP
+```
+
+---
+
+# License
+
+Internal project.
