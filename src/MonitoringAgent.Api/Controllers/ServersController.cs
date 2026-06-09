@@ -825,4 +825,66 @@ public sealed class ServersController
         return Ok(
             result);
     }
+
+    // =====================================================================
+    // Server Alerts
+    // =====================================================================
+
+    /// <summary>
+    /// Retrieves alerts associated with a server.
+    /// </summary>
+    /// <param name="serverId">
+    /// Server identifier.
+    /// </param>
+    /// <param name="limit">
+    /// Maximum alerts to return.
+    /// </param>
+    /// <returns>
+    /// Alert history for the server.
+    /// </returns>
+    [HttpGet("{serverId:int}/alerts")]
+    public async Task<IActionResult> GetAlerts(
+        int serverId,
+        int limit = 100)
+    {
+        var alerts =
+            await _db.AlertEvents
+                .Include(x => x.Server)
+                .Include(x => x.AlertRule)
+                .Where(x =>
+                    x.ServerId ==
+                    serverId)
+                .OrderByDescending(
+                    x => x.OpenedUtc)
+                .Take(limit)
+                .Select(x => new
+                {
+                    x.AlertEventId,
+                    x.AlertRuleId,
+                    x.ServerId,
+                    ServerName =
+                        x.Server != null
+                            ? x.Server.ServerName
+                            : string.Empty,
+                    RuleName =
+                        x.AlertRule != null
+                            ? x.AlertRule.RuleName
+                            : string.Empty,
+                    Severity =
+                        x.AlertRule != null
+                            ? x.AlertRule.Severity.ToString()
+                            : string.Empty,
+                    Status =
+                        x.Status.ToString(),
+                    x.Message,
+                    x.OpenedUtc,
+                    x.ClosedUtc,
+                    x.LastSeenUtc,
+                    x.NotificationCount
+                })
+                .ToListAsync();
+
+        return Ok(
+            alerts);
+    }
 }
