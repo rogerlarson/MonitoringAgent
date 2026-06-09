@@ -3,7 +3,7 @@
 // File: SnapshotCleanupWorker.cs
 // Author: Roger Larson
 // Date Created: 06/07/2026
-// Date Updated: 06/07/2026
+// Date Updated: 06/09/2026
 // Description:
 //      Background worker responsible for enforcing data retention policies
 //      for monitoring data stored in the database.
@@ -11,13 +11,19 @@
 //      Periodically removes expired host snapshots, gateway snapshots,
 //      Ignition snapshots, and alert events based on configured retention
 //      settings to prevent unbounded database growth.
+//
+// Notes:
+//      Uses ExecuteDeleteAsync() for efficient bulk deletion.
+//      Avoids loading expired records into memory.
+//      Supports graceful Windows Service shutdown through
+//      cancellation-aware EF Core operations.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MonitoringAgent.Common.Interfaces;
 using MonitoringAgent.Data;
 using MonitoringAgent.Engine.Configuration;
-using MonitoringAgent.Common.Interfaces;
 
 namespace MonitoringAgent.Engine.Workers;
 
@@ -41,21 +47,6 @@ public sealed class SnapshotCleanupWorker
     // Constructor
     // =====================================================================
 
-    /// <summary>
-    /// Initializes the snapshot cleanup worker.
-    /// </summary>
-    /// <param name="serviceProvider">
-    /// Service provider used to create scoped dependencies.
-    /// </param>
-    /// <param name="options">
-    /// Snapshot retention configuration settings.
-    /// </param>
-    /// <param name="engineOptions">
-    /// Engine configuration settings.
-    /// </param>
-    /// <param name="logService">
-    /// Logging service used for maintenance activity.
-    /// </param>
     public SnapshotCleanupWorker(
         IServiceProvider serviceProvider,
         IOptions<RetentionSettings> options,
@@ -79,12 +70,6 @@ public sealed class SnapshotCleanupWorker
     // Worker Execution
     // =====================================================================
 
-    /// <summary>
-    /// Executes the cleanup loop until the service is stopped.
-    /// </summary>
-    /// <param name="stoppingToken">
-    /// Cancellation token used to stop the worker.
-    /// </param>
     protected override async Task ExecuteAsync(
         CancellationToken stoppingToken)
     {
@@ -92,7 +77,12 @@ public sealed class SnapshotCleanupWorker
         {
             try
             {
-                await Cleanup();
+                await Cleanup(
+                    stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
             }
             catch (Exception ex)
             {
@@ -100,11 +90,18 @@ public sealed class SnapshotCleanupWorker
                     $"Snapshot cleanup failed: {ex}");
             }
 
-            await Task.Delay(
-                TimeSpan.FromMinutes(
-                    _engineSettings
-                        .SnapshotCleanupIntervalMinutes),
-                stoppingToken);
+            try
+            {
+                await Task.Delay(
+                    TimeSpan.FromMinutes(
+                        _engineSettings
+                            .SnapshotCleanupIntervalMinutes),
+                    stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 
@@ -115,7 +112,8 @@ public sealed class SnapshotCleanupWorker
     /// <summary>
     /// Executes all configured cleanup operations.
     /// </summary>
-    private async Task Cleanup()
+    private async Task Cleanup(
+        CancellationToken stoppingToken)
     {
         using var scope =
             _serviceProvider.CreateScope();
@@ -125,42 +123,41 @@ public sealed class SnapshotCleanupWorker
                 .GetRequiredService<
                     MonitoringDbContext>();
 
-        await CleanupHostSnapshots(db);
-        await CleanupGatewaySnapshots(db);
-        await CleanupIgnitionSnapshots(db);
-        await CleanupAlertEvents(db);
+        await CleanupHostSnapshots(
+            db,
+            stoppingToken);
+
+        await CleanupGatewaySnapshots(
+            db,
+            stoppingToken);
+
+        await CleanupIgnitionSnapshots(
+            db,
+            stoppingToken);
+
+        await CleanupAlertEvents(
+            db,
+            stoppingToken);
     }
 
     // =====================================================================
     // Host Snapshot Cleanup
     // =====================================================================
 
-    /// <summary>
-    /// Removes host snapshots that exceed the configured retention period.
-    /// </summary>
-    /// <param name="db">
-    /// Database context.
-    /// </param>
     private async Task CleanupHostSnapshots(
-        MonitoringDbContext db)
+        MonitoringDbContext db,
+        CancellationToken stoppingToken)
     {
         var cutoff =
             DateTime.UtcNow.AddDays(
                 -_settings.HostSnapshotDays);
 
-        var snapshots =
+        var deleted =
             await db.HostSnapshots
                 .Where(x =>
                     x.SnapshotUtc < cutoff)
-                .ToListAsync();
-
-        var deleted =
-            snapshots.Count;
-
-        db.HostSnapshots.RemoveRange(
-            snapshots);
-
-        await db.SaveChangesAsync();
+                .ExecuteDeleteAsync(
+                    stoppingToken);
 
         await _logService.LogMaintenance(
             $"Deleted {deleted} host snapshots");
@@ -170,32 +167,20 @@ public sealed class SnapshotCleanupWorker
     // Gateway Snapshot Cleanup
     // =====================================================================
 
-    /// <summary>
-    /// Removes gateway snapshots that exceed the configured retention period.
-    /// </summary>
-    /// <param name="db">
-    /// Database context.
-    /// </param>
     private async Task CleanupGatewaySnapshots(
-        MonitoringDbContext db)
+        MonitoringDbContext db,
+        CancellationToken stoppingToken)
     {
         var cutoff =
             DateTime.UtcNow.AddDays(
                 -_settings.GatewaySnapshotDays);
 
-        var snapshots =
+        var deleted =
             await db.GatewaySnapshots
                 .Where(x =>
                     x.SnapshotUtc < cutoff)
-                .ToListAsync();
-
-        var deleted =
-            snapshots.Count;
-
-        db.GatewaySnapshots.RemoveRange(
-            snapshots);
-
-        await db.SaveChangesAsync();
+                .ExecuteDeleteAsync(
+                    stoppingToken);
 
         await _logService.LogMaintenance(
             $"Deleted {deleted} gateway snapshots");
@@ -205,33 +190,20 @@ public sealed class SnapshotCleanupWorker
     // Ignition Snapshot Cleanup
     // =====================================================================
 
-    /// <summary>
-    /// Removes Ignition snapshots that exceed the configured retention
-    /// period.
-    /// </summary>
-    /// <param name="db">
-    /// Database context.
-    /// </param>
     private async Task CleanupIgnitionSnapshots(
-        MonitoringDbContext db)
+        MonitoringDbContext db,
+        CancellationToken stoppingToken)
     {
         var cutoff =
             DateTime.UtcNow.AddDays(
                 -_settings.IgnitionSnapshotDays);
 
-        var snapshots =
+        var deleted =
             await db.IgnitionSnapshots
                 .Where(x =>
                     x.SnapshotUtc < cutoff)
-                .ToListAsync();
-
-        var deleted =
-            snapshots.Count;
-
-        db.IgnitionSnapshots.RemoveRange(
-            snapshots);
-
-        await db.SaveChangesAsync();
+                .ExecuteDeleteAsync(
+                    stoppingToken);
 
         await _logService.LogMaintenance(
             $"Deleted {deleted} ignition snapshots");
@@ -241,32 +213,20 @@ public sealed class SnapshotCleanupWorker
     // Alert Event Cleanup
     // =====================================================================
 
-    /// <summary>
-    /// Removes alert events that exceed the configured retention period.
-    /// </summary>
-    /// <param name="db">
-    /// Database context.
-    /// </param>
     private async Task CleanupAlertEvents(
-        MonitoringDbContext db)
+        MonitoringDbContext db,
+        CancellationToken stoppingToken)
     {
         var cutoff =
             DateTime.UtcNow.AddDays(
                 -_settings.AlertEventDays);
 
-        var alerts =
+        var deleted =
             await db.AlertEvents
                 .Where(x =>
                     x.OpenedUtc < cutoff)
-                .ToListAsync();
-
-        var deleted =
-            alerts.Count;
-
-        db.AlertEvents.RemoveRange(
-            alerts);
-
-        await db.SaveChangesAsync();
+                .ExecuteDeleteAsync(
+                    stoppingToken);
 
         await _logService.LogMaintenance(
             $"Deleted {deleted} alert events");

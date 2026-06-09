@@ -41,6 +41,15 @@ public sealed class LogSettings
         set;
     } = 30;
 
+    /// <summary>
+    /// Number of hours between log cleanup executions.
+    /// </summary>
+    public int CleanupIntervalHours
+    {
+        get;
+        set;
+    } = 24;
+
     // =====================================================================
     // Category Logging
     // =====================================================================

@@ -3,7 +3,7 @@
 // File: MetricCollector.cs
 // Author: Roger Larson
 // Date Created: 06/07/2026
-// Date Updated: 06/07/2026
+// Date Updated: 06/09/2026
 // Description:
 //      Coordinates health metric collection from all registered metric
 //      collectors.
@@ -11,9 +11,13 @@
 //      Aggregates system, CPU, memory, disk, network, Ignition, gateway,
 //      and host information into a single health snapshot that can be
 //      published to the monitoring API.
+//
+//      Individual collector failures are isolated to prevent a single
+//      failing collector from preventing snapshot publication.
 // ============================================================================
 
 using MonitoringAgent.Agent.Collectors.Interfaces;
+using MonitoringAgent.Common.Interfaces;
 using MonitoringAgent.Common.Models;
 
 namespace MonitoringAgent.Agent.Collectors;
@@ -36,6 +40,7 @@ public sealed class MetricCollector
     private readonly DiskPerformanceMetricsCollector _diskPerformanceMetrics;
     private readonly NetworkMetricsCollector _networkMetrics;
     private readonly HostInformationCollector _hostInformation;
+    private readonly ILogService _logService;
 
     // =====================================================================
     // Constructor
@@ -44,30 +49,6 @@ public sealed class MetricCollector
     /// <summary>
     /// Initializes a new instance of the metric collector.
     /// </summary>
-    /// <param name="systemMetrics">
-    /// System metrics collector.
-    /// </param>
-    /// <param name="cpuMemoryMetrics">
-    /// CPU and memory metrics collector.
-    /// </param>
-    /// <param name="ignitionMetrics">
-    /// Ignition metrics collector.
-    /// </param>
-    /// <param name="gatewayMetrics">
-    /// Gateway metrics collector.
-    /// </param>
-    /// <param name="diskMetrics">
-    /// Disk utilization metrics collector.
-    /// </param>
-    /// <param name="diskPerformanceMetrics">
-    /// Disk performance metrics collector.
-    /// </param>
-    /// <param name="networkMetrics">
-    /// Network metrics collector.
-    /// </param>
-    /// <param name="hostInformation">
-    /// Host information collector.
-    /// </param>
     public MetricCollector(
         SystemMetricsCollector systemMetrics,
         CpuMemoryMetricsCollector cpuMemoryMetrics,
@@ -76,7 +57,8 @@ public sealed class MetricCollector
         DiskMetricsCollector diskMetrics,
         DiskPerformanceMetricsCollector diskPerformanceMetrics,
         NetworkMetricsCollector networkMetrics,
-        HostInformationCollector hostInformation)
+        HostInformationCollector hostInformation,
+        ILogService logService)
     {
         _systemMetrics =
             systemMetrics;
@@ -101,6 +83,9 @@ public sealed class MetricCollector
 
         _hostInformation =
             hostInformation;
+
+        _logService =
+            logService;
     }
 
     // =====================================================================
@@ -134,54 +119,107 @@ public sealed class MetricCollector
         // System Metrics
         // =============================================================
 
-        await _systemMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(SystemMetricsCollector),
+            () => _systemMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
-        await _cpuMemoryMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(CpuMemoryMetricsCollector),
+            () => _cpuMemoryMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
         // =============================================================
         // Ignition Metrics
         // =============================================================
 
-        await _ignitionMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(IgnitionMetricsCollector),
+            () => _ignitionMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
-        await _gatewayMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(GatewayMetricsCollector),
+            () => _gatewayMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
         // =============================================================
         // Storage Metrics
         // =============================================================
 
-        await _diskMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(DiskMetricsCollector),
+            () => _diskMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
-        await _diskPerformanceMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(DiskPerformanceMetricsCollector),
+            () => _diskPerformanceMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
         // =============================================================
         // Network Metrics
         // =============================================================
 
-        await _networkMetrics.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(NetworkMetricsCollector),
+            () => _networkMetrics.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
         // =============================================================
         // Host Information
         // =============================================================
 
-        await _hostInformation.PopulateAsync(
-            snapshot,
-            cancellationToken);
+        await SafePopulate(
+            nameof(HostInformationCollector),
+            () => _hostInformation.PopulateAsync(
+                snapshot,
+                cancellationToken));
 
         return snapshot;
+    }
+
+    // =====================================================================
+    // Collector Error Isolation
+    // =====================================================================
+
+    /// <summary>
+    /// Executes a collector and prevents failures from impacting
+    /// the remainder of snapshot collection.
+    /// </summary>
+    /// <param name="collectorName">
+    /// Collector name.
+    /// </param>
+    /// <param name="collector">
+    /// Collector execution delegate.
+    /// </param>
+    private async Task SafePopulate(
+        string collectorName,
+        Func<Task> collector)
+    {
+        try
+        {
+            await collector();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await _logService.LogError(
+                "AGENT",
+                ex);
+
+            await _logService.LogAgent(
+                $"{collectorName} collection failed: {ex.Message}");
+        }
     }
 }

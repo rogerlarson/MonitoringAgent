@@ -188,6 +188,24 @@ public sealed class LogService
     }
 
     // -------------------------------------------------------------------------
+    // Agent Logging
+    // -------------------------------------------------------------------------
+
+    public Task LogAgent(
+        string message)
+    {
+        if (!_settings.EnableMaintenanceLogging)
+        {
+            return Task.CompletedTask;
+        }
+
+        return Log(
+            "AGENT",
+            LogLevel.Info,
+            message);
+    }
+
+    // -------------------------------------------------------------------------
     // API Logging
     // -------------------------------------------------------------------------
 
@@ -220,6 +238,33 @@ public sealed class LogService
         return Log(
             "ENGINE",
             LogLevel.Info,
+            message);
+    }
+
+    // -------------------------------------------------------------------------
+    // System Logging
+    // -------------------------------------------------------------------------
+
+    public Task LogSystem(
+        string message)
+    {
+        return Log(
+            "SYSTEM",
+            LogLevel.Info,
+            message);
+    }
+
+    // -------------------------------------------------------------------------
+    // Warning Logging
+    // -------------------------------------------------------------------------
+
+    public Task LogWarning(
+        string category,
+        string message)
+    {
+        return Log(
+            category,
+            LogLevel.Warning,
             message);
     }
 

@@ -13,11 +13,14 @@ Responsibilities:
 - Configure dependency injection
 - Configure database access
 - Configure application settings
+- Configure Windows Service hosting
 - Register hosted workers
+- Register lifecycle monitoring
 - Initialize engine state
 - Start background processing services
 
 Hosted Workers:
+- EngineLifecycleService
 - LogCleanupWorker
 - HostOfflineMonitorWorker
 - SnapshotAlertWorker
@@ -31,6 +34,12 @@ Services:
 
 Database:
 MonitoringDbContext
+
+Windows Service:
+- Monitoring Agent Engine
+- Automatic startup support
+- Lifecycle event logging
+- Service recovery compatible
 
 Execution Flow:
 
@@ -47,6 +56,11 @@ Execution Flow:
     Background Processing
 
 Startup Behavior:
+- Registers Windows Service integration
+- Records lifecycle events
+- Restores stale service states
+- Starts background workers
+
 Any engine services marked as "Running" from a previous
 execution are automatically marked as "Stopped" during
 startup to ensure accurate service status reporting.
@@ -62,14 +76,26 @@ using MonitoringAgent.Data;
 using MonitoringAgent.Engine.Configuration;
 using MonitoringAgent.Engine.Services;
 using MonitoringAgent.Engine.Workers;
+using MonitoringAgent.Common.Workers;
 
 var builder =
     Host.CreateApplicationBuilder(
         args);
 
-// -------------------------------------------------------------------------
+// ============================================================================
+// Windows Service Hosting
+// ============================================================================
+
+builder.Services.AddWindowsService(
+    options =>
+    {
+        options.ServiceName =
+            "Monitoring Agent Engine";
+    });
+
+// ============================================================================
 // Core Services
-// -------------------------------------------------------------------------
+// ============================================================================
 
 builder.Services.AddSingleton<
     ILogService,
@@ -85,9 +111,12 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     EngineStatusService>();
 
-// -------------------------------------------------------------------------
+// ============================================================================
 // Background Workers
-// -------------------------------------------------------------------------
+// ============================================================================
+
+builder.Services.AddHostedService<
+    EngineLifecycleService>();
 
 builder.Services.AddHostedService<
     LogCleanupWorker>();
@@ -101,9 +130,9 @@ builder.Services.AddHostedService<
 builder.Services.AddHostedService<
     SnapshotCleanupWorker>();
 
-// -------------------------------------------------------------------------
+// ============================================================================
 // Configuration
-// -------------------------------------------------------------------------
+// ============================================================================
 
 builder.Services.Configure<LogSettings>(
     builder.Configuration.GetSection(
@@ -127,9 +156,9 @@ var monitoringSettings =
 builder.Services.AddSingleton(
     monitoringSettings);
 
-// -------------------------------------------------------------------------
+// ============================================================================
 // Database Configuration
-// -------------------------------------------------------------------------
+// ============================================================================
 
 var connectionString =
     builder.Configuration.GetConnectionString(
@@ -143,12 +172,16 @@ builder.Services.AddDbContext<
         options.UseSqlServer(
             connectionString));
 
+// ============================================================================
+// Build Host
+// ============================================================================
+
 var host =
     builder.Build();
 
-// -------------------------------------------------------------------------
+// ============================================================================
 // Engine Startup Recovery
-// -------------------------------------------------------------------------
+// ============================================================================
 //
 // Any services that were previously marked as
 // "Running" are transitioned to "Stopped" during
@@ -175,7 +208,11 @@ using (var scope =
             "Stopped";
     }
 
-    db.SaveChanges();
+    await db.SaveChangesAsync();
 }
+
+// ============================================================================
+// Start Engine
+// ============================================================================
 
 await host.RunAsync();

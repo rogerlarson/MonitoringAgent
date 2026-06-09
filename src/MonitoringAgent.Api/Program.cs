@@ -1,3 +1,22 @@
+// ============================================================================
+// Project: MonitoringAgent.Api
+// File: Program.cs
+// Author: Roger Larson
+// Date Created: 06/07/2026
+// Date Updated: 06/09/2026
+// Description:
+//      Application startup configuration for the MonitoringAgent API.
+//
+//      Responsibilities:
+//      - Configure dependency injection
+//      - Configure application settings
+//      - Configure SQL Server database access
+//      - Configure repositories and services
+//      - Configure middleware pipeline
+//      - Configure controller routing
+//      - Configure Swagger documentation
+// ============================================================================
+
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using MonitoringAgent.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,69 +27,102 @@ using MonitoringAgent.Api.Middleware;
 using MonitoringAgent.Data.Repositories;
 using MonitoringAgent.Common.Interfaces;
 
-// Get the Web Application builder object...
-var builder = WebApplication.CreateBuilder(args);
+// ============================================================================
+// Application Builder
+// ============================================================================
 
-// Add CORS...
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(
-        "React",
-        policy =>
-        {
-            policy
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader();
-        });
-});
+var builder =
+    WebApplication.CreateBuilder(
+        args);
 
-// Add Controllers...
+// ============================================================================
+// Cross-Origin Resource Sharing (CORS)
+// ============================================================================
+
+builder.Services.AddCors(
+    options =>
+    {
+        options.AddPolicy(
+            "React",
+            policy =>
+            {
+                policy
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+    });
+
+// ============================================================================
+// MVC Services
+// ============================================================================
+
 builder.Services.AddControllers();
 
-// Add Endpoints API Explorer...
 builder.Services.AddEndpointsApiExplorer();
 
-// Add Swagger Generator...
 builder.Services.AddSwaggerGen();
 
-// Add Logger Service...
-builder.Services.AddSingleton<ILogService, LogService>();
+// ============================================================================
+// Core Services
+// ============================================================================
 
-// Add Monitoring Repository
-builder.Services.AddScoped<IMonitoringRepository, MonitoringRepository>();
+builder.Services.AddSingleton<
+    ILogService,
+    LogService>();
 
-// Configure Log Settings...
-builder.Services.Configure<LogSettings>(
-    builder.Configuration.GetSection(
-        "Logging"));
-
-// Add Email Service...
 builder.Services.AddScoped<
     IEmailService,
     EmailService>();
 
-// Configure API Settings...
+// ============================================================================
+// Repository Services
+// ============================================================================
+
+builder.Services.AddScoped<
+    IMonitoringRepository,
+    MonitoringRepository>();
+
+// ============================================================================
+// Application Configuration
+// ============================================================================
+
+builder.Services.Configure<LogSettings>(
+    builder.Configuration.GetSection(
+        "Logging"));
+
 var apiSettings =
     builder.Configuration
-        .GetSection("Api")
+        .GetSection(
+            "Api")
         .Get<ApiSettings>()
     ?? new ApiSettings();
 
 builder.Services.AddSingleton(
     apiSettings);
 
-// Add Monitoring Database Context Service...
-builder.Services.AddDbContext<MonitoringDbContext>(
+// ============================================================================
+// Database Configuration
+// ============================================================================
+
+builder.Services.AddDbContext<
+    MonitoringDbContext>(
     options =>
         options.UseSqlServer(
             builder.Configuration.GetConnectionString(
                 "MonitoringDatabase")));
 
-// Build Application...
-var app = builder.Build();
+// ============================================================================
+// Build Application
+// ============================================================================
 
-// Log API Key authentication requirements initially... 
+var app =
+    builder.Build();
+
+// ============================================================================
+// Startup Diagnostics
+// ============================================================================
+
 var logger =
     app.Services
         .GetRequiredService<
@@ -82,24 +134,41 @@ logger.LogInformation(
         ? "ENABLED"
         : "DISABLED");
 
-// Add the Swagger Page
+// ============================================================================
+// Development Tooling
+// ============================================================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI();
 }
 
-// Use HTTPS Redirection...
+// ============================================================================
+// HTTP Pipeline
+// ============================================================================
+
 app.UseHttpsRedirection();
 
-// Use CORS...
-app.UseCors("React");
+app.UseCors(
+    "React");
 
-// Add Middleware...
-app.UseMiddleware<ApiLoggingMiddleware>();
+// ============================================================================
+// Middleware
+// ============================================================================
 
-// Map Controllers...
+app.UseMiddleware<
+    ApiLoggingMiddleware>();
+
+// ============================================================================
+// Endpoint Routing
+// ============================================================================
+
 app.MapControllers();
 
-// Run Application...
+// ============================================================================
+// Application Startup
+// ============================================================================
+
 app.Run();

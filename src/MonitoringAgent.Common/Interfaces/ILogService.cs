@@ -74,6 +74,45 @@ public interface ILogService
     Task LogMaintenance(
         string message);
 
+    /// <summary>
+    /// Writes an agent-related log entry.
+    /// </summary>
+    /// <param name="message">
+    /// Log message to record.
+    /// </param>
+    Task LogAgent(
+        string message);
+
+    // =====================================================================
+    // System Logging
+    // =====================================================================
+
+    /// <summary>
+    /// Writes a system-level log entry.
+    /// </summary>
+    /// <param name="message">
+    /// Log message to record.
+    /// </param>
+    Task LogSystem(
+        string message);
+
+    // =====================================================================
+    // Warning Logging
+    // =====================================================================
+
+    /// <summary>
+    /// Writes a warning log entry.
+    /// </summary>
+    /// <param name="category">
+    /// Log category name.
+    /// </param>
+    /// <param name="message">
+    /// Warning message.
+    /// </param>
+    Task LogWarning(
+        string category,
+        string message);
+
     // =====================================================================
     // General Logging
     // =====================================================================

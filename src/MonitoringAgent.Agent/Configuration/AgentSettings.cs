@@ -115,4 +115,45 @@ public sealed class AgentSettings
         get;
         set;
     } = string.Empty;
+
+    // =====================================================================
+    // Validation
+    // =====================================================================
+
+    /// <summary>
+    /// Validates configuration settings.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when configuration is invalid.
+    /// </exception>
+    public void Validate()
+    {
+        if (string.IsNullOrWhiteSpace(
+                CollectorUrl))
+        {
+            throw new InvalidOperationException(
+                "AgentSettings: CollectorUrl is required.");
+        }
+
+        if (!Uri.TryCreate(
+                CollectorUrl,
+                UriKind.Absolute,
+                out _))
+        {
+            throw new InvalidOperationException(
+                "AgentSettings: CollectorUrl is not a valid URI.");
+        }
+
+        if (PollIntervalSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "AgentSettings: PollIntervalSeconds must be greater than zero.");
+        }
+
+        if (HttpTimeoutSeconds <= 0)
+        {
+            throw new InvalidOperationException(
+                "AgentSettings: HttpTimeoutSeconds must be greater than zero.");
+        }
+    }
 }
